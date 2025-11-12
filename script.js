@@ -1,41 +1,18 @@
-// IndexedDB Setup for Offline Music
-let db;
+// MySQL API Configuration
+const API_BASE_URL = 'api/music.php';
 let currentPlaylist = [];
 let currentTrackIndex = 0;
 let isShuffling = false;
 let isRepeating = false;
 
-function initDB() {
-    const request = indexedDB.open('TuneLocalDB', 1);
-    
-    request.onerror = function() {
-        console.error('Database failed to open');
-    };
-    
-    request.onsuccess = function() {
-        db = request.result;
-        loadOfflineMusic();
-    };
-    
-    request.onupgradeneeded = function(e) {
-        db = e.target.result;
-        
-        if (!db.objectStoreNames.contains('music')) {
-            const objectStore = db.objectStore = db.createObjectStore('music', { keyPath: 'id', autoIncrement: true });
-            objectStore.createIndex('name', 'name', { unique: false });
-            objectStore.createIndex('dateAdded', 'dateAdded', { unique: false });
-        }
-    };
-}
-
 // Navigation & Section Management
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize
-    initDB();
     loadSavedPlaylists();
     loadSavedSongs();
     setupEventListeners();
     setupOfflineMusicListeners();
+    loadOfflineMusicFromMySQL();
     
     // Smooth scroll for navigation
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -515,59 +492,112 @@ function handleFileSelect(e) {
 function handleFiles(files) {
     if (files.length === 0) return;
     
+    let uploadCount = 0;
+    let errorCount = 0;
+    
     Array.from(files).forEach(file => {
-        if (file.type.startsWith('audio/')) {
+        // Accept both audio and video files (MP4, WEBM, etc.)
+        if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
             saveOfflineMusic(file);
+            uploadCount++;
+        } else if (file.name.match(/\.(mp3|mp4|wav|ogg|m4a|webm|flac|aac)$/i)) {
+            // Fallback: check file extension if MIME type is not detected
+            saveOfflineMusic(file);
+            uploadCount++;
         } else {
-            showNotification(`${file.name} is not an audio file`, 'error');
+            showNotification(`${file.name} is not a supported audio/video file`, 'error');
+            errorCount++;
         }
     });
+    
+    if (uploadCount > 0) {
+        showNotification(`Uploading ${uploadCount} file(s)...`, 'success');
+    }
 }
 
 function saveOfflineMusic(file) {
     const reader = new FileReader();
     
     reader.onload = function(e) {
-        const transaction = db.transaction(['music'], 'readwrite');
-        const objectStore = transaction.objectStore('music');
+        const formData = new FormData();
+        formData.append('action', 'upload');
+        formData.append('name', file.name.replace(/\.[^/.]+$/, ''));
+        formData.append('fileName', file.name);
+        formData.append('fileType', file.type);
+        formData.append('fileSize', file.size);
+        formData.append('fileData', e.target.result);
         
-        const musicData = {
-            name: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
-            fileName: file.name,
-            type: file.type,
-            size: file.size,
-            data: e.target.result,
-            dateAdded: new Date().toISOString()
-        };
-        
-        const request = objectStore.add(musicData);
-        
-        request.onsuccess = function() {
-            showNotification(`${file.name} uploaded successfully!`, 'success');
-            loadOfflineMusic();
-        };
-        
-        request.onerror = function() {
-            showNotification(`Failed to upload ${file.name}`, 'error');
-        };
+        fetch(API_BASE_URL, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            // Check if response is ok
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`Server error: ${text}`);
+                });
+            }
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Invalid JSON response:', text);
+                    throw new Error('Server returned invalid JSON. Check console for details.');
+                }
+            });
+        })
+        .then(data => {
+            if (data.success) {
+                showNotification(`${file.name} uploaded successfully!`, 'success');
+                loadOfflineMusicFromMySQL();
+            } else {
+                showNotification(`Failed to upload ${file.name}: ${data.error}`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            showNotification(`Upload error: ${error.message}`, 'error');
+        });
     };
     
     reader.readAsDataURL(file);
 }
 
-function loadOfflineMusic() {
-    const transaction = db.transaction(['music'], 'readonly');
-    const objectStore = transaction.objectStore('music');
-    const request = objectStore.getAll();
-    
-    request.onsuccess = function() {
-        const tracks = request.result;
-        currentPlaylist = tracks;
-        displayOfflineMusic(tracks);
-    };
+function loadOfflineMusicFromMySQL() {
+    fetch(API_BASE_URL + '?action=list')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentPlaylist = data.tracks;
+                displayOfflineMusicFromMySQL(data.tracks);
+                updateStorageStatsMySQL();
+            } else {
+                showNotification('Failed to load music library', 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error loading music: ' + error.message, 'error');
+        });
 }
 
-function displayOfflineMusic(tracks) {
+function updateStorageStatsMySQL() {
+    fetch(API_BASE_URL + '?action=stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.stats) {
+                const stats = data.stats;
+                document.getElementById('storageUsed').textContent = formatFileSize(parseInt(stats.total_size) || 0);
+                document.getElementById('totalFiles').textContent = stats.total_tracks || 0;
+                document.getElementById('storageAvailable').textContent = 'Unlimited (MySQL)';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+        });
+}
+
+function displayOfflineMusicFromMySQL(tracks) {
     const container = document.getElementById('musicTracks');
     const trackCount = document.getElementById('trackCount');
     
@@ -579,28 +609,41 @@ function displayOfflineMusic(tracks) {
                 <i class="fas fa-music"></i>
                 <h3>Your Library is Empty</h3>
                 <p>Upload your music files to start listening offline!</p>
+                <p style="margin-top: 1rem; color: var(--primary-color);">
+                    <i class="fas fa-database"></i> Powered by MySQL - Unlimited Storage!
+                </p>
             </div>
         `;
         return;
     }
     
-    container.innerHTML = tracks.map((track, index) => `
-        <div class="track-item" onclick="playOfflineTrack(${track.id}, ${index})">
+    container.innerHTML = tracks.map((track, index) => {
+        // Determine icon based on file type
+        const isVideo = track.file_type.startsWith('video/') || track.file_name.match(/\.(mp4|webm|mov|avi)$/i);
+        const icon = isVideo ? 'fa-video' : 'fa-music';
+        
+        return `
+        <div class="track-item" onclick="playOfflineTrackMySQL(${track.id}, ${index})">
             <div class="track-number">${index + 1}</div>
-            <i class="fas fa-music track-icon"></i>
+            <i class="fas ${icon} track-icon"></i>
             <div class="track-details">
                 <div class="track-name">${track.name}</div>
                 <div class="track-meta">
-                    ${formatFileSize(track.size)} • ${new Date(track.dateAdded).toLocaleDateString()}
+                    ${formatFileSize(parseInt(track.file_size))} • ${new Date(track.date_added).toLocaleDateString()}
+                    ${track.play_count > 0 ? `• Played ${track.play_count} times` : ''}
                 </div>
             </div>
             <div class="track-actions">
-                <button class="icon-btn delete" onclick="event.stopPropagation(); deleteOfflineTrack(${track.id})" title="Delete">
+                <button class="icon-btn" onclick="event.stopPropagation(); exportTrackMySQL(${track.id})" title="Export/Download">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="icon-btn delete" onclick="event.stopPropagation(); deleteOfflineTrackMySQL(${track.id})" title="Delete">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function formatFileSize(bytes) {
@@ -611,37 +654,42 @@ function formatFileSize(bytes) {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
-function playOfflineTrack(id, index) {
-    const transaction = db.transaction(['music'], 'readonly');
-    const objectStore = transaction.objectStore('music');
-    const request = objectStore.get(id);
-    
-    request.onsuccess = function() {
-        const track = request.result;
-        const audioPlayer = document.getElementById('audioPlayer');
-        const nowPlayingSection = document.getElementById('nowPlayingSection');
-        
-        audioPlayer.src = track.data;
-        audioPlayer.play();
-        
-        currentTrackIndex = index;
-        
-        // Update UI
-        document.getElementById('currentTrackName').textContent = track.name;
-        document.getElementById('currentTrackArtist').textContent = track.fileName;
-        nowPlayingSection.style.display = 'block';
-        
-        // Update playing state
-        document.querySelectorAll('.track-item').forEach((item, i) => {
-            if (i === index) {
-                item.classList.add('playing');
+function playOfflineTrackMySQL(id, index) {
+    fetch(API_BASE_URL + '?action=get&id=' + id)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.track) {
+                const track = data.track;
+                const audioPlayer = document.getElementById('audioPlayer');
+                const nowPlayingSection = document.getElementById('nowPlayingSection');
+                
+                audioPlayer.src = track.file_data;
+                audioPlayer.play();
+                
+                currentTrackIndex = index;
+                
+                // Update UI
+                document.getElementById('currentTrackName').textContent = track.name;
+                document.getElementById('currentTrackArtist').textContent = track.file_name;
+                nowPlayingSection.style.display = 'block';
+                
+                // Update playing state
+                document.querySelectorAll('.track-item').forEach((item, i) => {
+                    if (i === index) {
+                        item.classList.add('playing');
+                    } else {
+                        item.classList.remove('playing');
+                    }
+                });
+                
+                showNotification(`Now playing: ${track.name}`, 'success');
             } else {
-                item.classList.remove('playing');
+                showNotification('Failed to load track', 'error');
             }
+        })
+        .catch(error => {
+            showNotification('Error playing track: ' + error.message, 'error');
         });
-        
-        showNotification(`Now playing: ${track.name}`, 'success');
-    };
 }
 
 function togglePlay() {
@@ -662,14 +710,14 @@ function nextTrack() {
         currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
     }
     
-    playOfflineTrack(currentPlaylist[currentTrackIndex].id, currentTrackIndex);
+    playOfflineTrackMySQL(currentPlaylist[currentTrackIndex].id, currentTrackIndex);
 }
 
 function previousTrack() {
     if (currentPlaylist.length === 0) return;
     
     currentTrackIndex = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
-    playOfflineTrack(currentPlaylist[currentTrackIndex].id, currentTrackIndex);
+    playOfflineTrackMySQL(currentPlaylist[currentTrackIndex].id, currentTrackIndex);
 }
 
 function toggleShuffle() {
@@ -698,50 +746,126 @@ function toggleRepeat() {
     }
 }
 
-function deleteOfflineTrack(id) {
+function deleteOfflineTrackMySQL(id) {
     if (!confirm('Delete this track from your offline library?')) {
         return;
     }
     
-    const transaction = db.transaction(['music'], 'readwrite');
-    const objectStore = transaction.objectStore('music');
-    const request = objectStore.delete(id);
-    
-    request.onsuccess = function() {
-        showNotification('Track deleted', 'success');
-        loadOfflineMusic();
-        
-        // Stop playback if this was the current track
-        const audioPlayer = document.getElementById('audioPlayer');
-        if (currentPlaylist[currentTrackIndex]?.id === id) {
-            audioPlayer.pause();
-            audioPlayer.src = '';
-            document.getElementById('currentTrackName').textContent = 'No track playing';
-            document.getElementById('currentTrackArtist').textContent = 'Select a song to play';
+    fetch(API_BASE_URL + '?id=' + id, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Track deleted', 'success');
+            loadOfflineMusicFromMySQL();
+            
+            // Stop playback if this was the current track
+            const audioPlayer = document.getElementById('audioPlayer');
+            if (currentPlaylist[currentTrackIndex]?.id === id) {
+                audioPlayer.pause();
+                audioPlayer.src = '';
+                document.getElementById('currentTrackName').textContent = 'No track playing';
+                document.getElementById('currentTrackArtist').textContent = 'Select a song to play';
+            }
+        } else {
+            showNotification('Failed to delete track', 'error');
         }
-    };
+    })
+    .catch(error => {
+        showNotification('Error deleting track: ' + error.message, 'error');
+    });
 }
 
-function clearAllOfflineMusic() {
+function clearAllOfflineMusicMySQL() {
     if (!confirm('Delete ALL tracks from your offline library? This cannot be undone!')) {
         return;
     }
     
-    const transaction = db.transaction(['music'], 'readwrite');
-    const objectStore = transaction.objectStore('music');
-    const request = objectStore.clear();
+    const formData = new FormData();
+    formData.append('action', 'clear');
     
-    request.onsuccess = function() {
-        showNotification('All tracks deleted', 'success');
-        loadOfflineMusic();
-        
-        const audioPlayer = document.getElementById('audioPlayer');
-        audioPlayer.pause();
-        audioPlayer.src = '';
-        document.getElementById('currentTrackName').textContent = 'No track playing';
-        document.getElementById('currentTrackArtist').textContent = 'Select a song to play';
-        document.getElementById('nowPlayingSection').style.display = 'none';
-    };
+    fetch(API_BASE_URL, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('All tracks deleted', 'success');
+            loadOfflineMusicFromMySQL();
+            
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.pause();
+            audioPlayer.src = '';
+            document.getElementById('currentTrackName').textContent = 'No track playing';
+            document.getElementById('currentTrackArtist').textContent = 'Select a song to play';
+            document.getElementById('nowPlayingSection').style.display = 'none';
+        } else {
+            showNotification('Failed to clear library', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error: ' + error.message, 'error');
+    });
+}
+
+function clearAllOfflineMusic() {
+    clearAllOfflineMusicMySQL();
+}
+
+// Export Functions
+function exportTrackMySQL(id) {
+    fetch(API_BASE_URL + '?action=get&id=' + id)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.track) {
+                const track = data.track;
+                downloadFile(track.file_data, track.file_name, track.file_type);
+                showNotification(`Exporting ${track.name}...`, 'success');
+            } else {
+                showNotification('Failed to export track', 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error exporting track: ' + error.message, 'error');
+        });
+}
+
+function exportAllMusic() {
+    if (currentPlaylist.length === 0) {
+        showNotification('No tracks to export', 'error');
+        return;
+    }
+    
+    if (!confirm(`Export all ${currentPlaylist.length} tracks? They will be downloaded to your Downloads folder.`)) {
+        return;
+    }
+    
+    showNotification(`Exporting ${currentPlaylist.length} files...`, 'success');
+    
+    currentPlaylist.forEach((track, index) => {
+        setTimeout(() => {
+            exportTrackMySQL(track.id);
+        }, index * 500); // Delay each download by 500ms to avoid browser blocking
+    });
+    
+    setTimeout(() => {
+        showNotification('All files exported successfully!', 'success');
+    }, currentPlaylist.length * 500 + 1000);
+}
+
+function downloadFile(dataUrl, fileName, mimeType) {
+    // Create a temporary link element
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = fileName;
+    link.style.display = 'none';
+    
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // Music Downloader Functions

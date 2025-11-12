@@ -875,6 +875,52 @@ body {
     margin: 0 auto;
 }
 
+.storage-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-item {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition);
+}
+
+.stat-item:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-3px);
+}
+
+.stat-item i {
+    font-size: 3rem;
+    color: var(--primary-color);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
 .upload-area {
     background: var(--bg-card);
     border: 3px dashed rgba(255, 255, 255, 0.2);
@@ -1035,6 +1081,12 @@ body {
 
 .library-header h3 {
     font-size: 1.8rem;
+}
+
+.library-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .music-tracks {
