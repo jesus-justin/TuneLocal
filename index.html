@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuneLocal - Your Personal Music Hub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="wave wave1"></div>
+        <div class="wave wave2"></div>
+        <div class="wave wave3"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <span>TuneLocal</span>
+            </div>
+            <div class="nav-links">
+                <a href="#home" class="nav-link active" data-section="home">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="#spotify" class="nav-link" data-section="spotify">
+                    <i class="fab fa-spotify"></i> Spotify
+                </a>
+                <a href="#youtube" class="nav-link" data-section="youtube">
+                    <i class="fab fa-youtube"></i> YouTube
+                </a>
+                <a href="#playlists" class="nav-link" data-section="playlists">
+                    <i class="fas fa-list-ul"></i> Playlists
+                </a>
+            </div>
+            <div class="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1 class="glitch" data-text="Welcome to TuneLocal">Welcome to TuneLocal</h1>
+                    <p class="hero-subtitle">Your personal music streaming hub - All your favorite music in one place</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary" onclick="showSection('spotify')">
+                            <i class="fab fa-spotify"></i> Open Spotify
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSection('youtube')">
+                            <i class="fab fa-youtube"></i> Open YouTube
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <i class="fas fa-music"></i>
+                        <h3>∞</h3>
+                        <p>Songs Available</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-headphones"></i>
+                        <h3>24/7</h3>
+                        <p>Always Online</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-heart"></i>
+                        <h3>Your</h3>
+                        <p>Favorites</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spotify Section -->
+        <section id="spotify" class="section">
+            <div class="section-header">
+                <h2><i class="fab fa-spotify"></i> Spotify Player</h2>
+                <p>Enjoy your favorite Spotify playlists and albums</p>
+            </div>
+            
+            <div class="player-container">
+                <div class="spotify-input-group">
+                    <input type="text" id="spotifyUrl" placeholder="Paste Spotify playlist/album/track URL here..." class="url-input">
+                    <button class="btn btn-primary" onclick="loadSpotify()">
+                        <i class="fas fa-play"></i> Load
+                    </button>
+                </div>
+                
+                <div class="player-wrapper" id="spotifyPlayer">
+                    <div class="default-player">
+                        <i class="fab fa-spotify"></i>
+                        <h3>Your Spotify Content Will Appear Here</h3>
+                        <p>Paste a Spotify URL above and click Load</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-links">
+                <h3>Quick Load Presets</h3>
+                <div class="preset-cards">
+                    <div class="preset-card" onclick="loadPresetSpotify('playlist/7GRnA1buU09xvdDoSJlyEw')">
+                        <i class="fas fa-list-ul"></i>
+                        <span>Your Playlist</span>
+                    </div>
+                    <div class="preset-card" onclick="loadPresetSpotify('playlist/37i9dQZF1DXcBWIGoYBM5M')">
+                        <i class="fas fa-fire"></i>
+                        <span>Today's Top Hits</span>
+                    </div>
+                    <div class="preset-card" onclick="loadPresetSpotify('playlist/37i9dQZF1DX4dyzvuaRJ0n')">
+                        <i class="fas fa-bolt"></i>
+                        <span>Mint</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- YouTube Section -->
+        <section id="youtube" class="section">
+            <div class="section-header">
+                <h2><i class="fab fa-youtube"></i> YouTube Player</h2>
+                <p>Watch and listen to music videos from YouTube</p>
+            </div>
+            
+            <div class="player-container">
+                <div class="youtube-input-group">
+                    <input type="text" id="youtubeUrl" placeholder="Paste YouTube video or playlist URL here..." class="url-input">
+                    <button class="btn btn-primary" onclick="loadYouTube()">
+                        <i class="fas fa-play"></i> Load
+                    </button>
+                </div>
+                
+                <div class="player-wrapper youtube-wrapper" id="youtubePlayer">
+                    <div class="default-player">
+                        <i class="fab fa-youtube"></i>
+                        <h3>Your YouTube Video Will Appear Here</h3>
+                        <p>Paste a YouTube URL above and click Load</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-links">
+                <h3>Popular Music Channels</h3>
+                <div class="preset-cards">
+                    <div class="preset-card" onclick="loadPresetYouTube('https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
+                        <i class="fas fa-music"></i>
+                        <span>Music Mix</span>
+                    </div>
+                    <div class="preset-card" onclick="loadPresetYouTube('https://www.youtube.com/watch?v=jfKfPfyJRdk')">
+                        <i class="fas fa-headphones"></i>
+                        <span>Lofi Beats</span>
+                    </div>
+                    <div class="preset-card" onclick="loadPresetYouTube('https://www.youtube.com/watch?v=5qap5aO4i9A')">
+                        <i class="fas fa-guitar"></i>
+                        <span>Live Session</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Playlists Section -->
+        <section id="playlists" class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-list-ul"></i> My Playlists</h2>
+                <p>Save and organize your favorite playlists</p>
+            </div>
+
+            <div class="playlists-container">
+                <button class="btn btn-primary add-playlist-btn" onclick="togglePlaylistForm()">
+                    <i class="fas fa-plus"></i> Add New Playlist
+                </button>
+
+                <div class="playlist-form" id="playlistForm" style="display: none;">
+                    <h3>Add New Playlist</h3>
+                    <input type="text" id="playlistName" placeholder="Playlist Name" class="form-input">
+                    <input type="text" id="playlistUrl" placeholder="Spotify or YouTube URL" class="form-input">
+                    <select id="playlistType" class="form-input">
+                        <option value="spotify">Spotify</option>
+                        <option value="youtube">YouTube</option>
+                    </select>
+                    <div class="form-buttons">
+                        <button class="btn btn-primary" onclick="savePlaylist()">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button class="btn btn-secondary" onclick="togglePlaylistForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="saved-playlists" id="savedPlaylists">
+                    <!-- Saved playlists will appear here -->
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Music Visualizer -->
+    <div class="visualizer">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 TuneLocal - Your Personal Music Hub | Made with <i class="fas fa-heart"></i></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
