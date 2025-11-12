@@ -32,6 +32,15 @@
                 <a href="#youtube" class="nav-link" data-section="youtube">
                     <i class="fab fa-youtube"></i> YouTube
                 </a>
+                <a href="#saved-songs" class="nav-link" data-section="saved-songs">
+                    <i class="fas fa-heart"></i> Saved Songs
+                </a>
+                <a href="#offline-music" class="nav-link" data-section="offline-music">
+                    <i class="fas fa-download"></i> Offline Music
+                </a>
+                <a href="#downloader" class="nav-link" data-section="downloader">
+                    <i class="fas fa-cloud-download-alt"></i> Downloader
+                </a>
                 <a href="#playlists" class="nav-link" data-section="playlists">
                     <i class="fas fa-list-ul"></i> Playlists
                 </a>
@@ -163,6 +172,270 @@
                         <i class="fas fa-guitar"></i>
                         <span>Live Session</span>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Offline Music Section -->
+        <section id="offline-music" class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-download"></i> Offline Music Library</h2>
+                <p>Upload and play your own music files - works 100% offline!</p>
+            </div>
+
+            <div class="offline-music-container">
+                <!-- Upload Area -->
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Upload Your Music Files</h3>
+                    <p>Drag & drop MP3, WAV, OGG, or M4A files here</p>
+                    <p class="upload-info">or click to browse</p>
+                    <input type="file" id="fileInput" accept="audio/*" multiple hidden>
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-folder-open"></i> Browse Files
+                    </button>
+                </div>
+
+                <!-- Now Playing Section -->
+                <div class="now-playing-section" id="nowPlayingSection" style="display: none;">
+                    <div class="now-playing-header">
+                        <h3><i class="fas fa-music"></i> Now Playing</h3>
+                    </div>
+                    <div class="now-playing-info">
+                        <div class="album-art">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div class="track-info">
+                            <h4 id="currentTrackName">No track playing</h4>
+                            <p id="currentTrackArtist">Select a song to play</p>
+                        </div>
+                    </div>
+                    
+                    <audio id="audioPlayer" controls style="width: 100%; margin-top: 1rem;">
+                        Your browser does not support the audio element.
+                    </audio>
+                    
+                    <div class="player-controls">
+                        <button class="control-btn" onclick="previousTrack()">
+                            <i class="fas fa-step-backward"></i>
+                        </button>
+                        <button class="control-btn play-btn" onclick="togglePlay()">
+                            <i class="fas fa-play" id="playIcon"></i>
+                        </button>
+                        <button class="control-btn" onclick="nextTrack()">
+                            <i class="fas fa-step-forward"></i>
+                        </button>
+                        <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn">
+                            <i class="fas fa-random"></i>
+                        </button>
+                        <button class="control-btn" onclick="toggleRepeat()" id="repeatBtn">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Music Library -->
+                <div class="music-library">
+                    <div class="library-header">
+                        <h3><i class="fas fa-list"></i> My Library (<span id="trackCount">0</span> tracks)</h3>
+                        <button class="btn btn-secondary" onclick="clearAllOfflineMusic()">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                    </div>
+                    <div class="music-tracks" id="musicTracks">
+                        <!-- Tracks will appear here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Downloader Section -->
+        <section id="downloader" class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-cloud-download-alt"></i> Music Downloader</h2>
+                <p>Download music from YouTube and save to your offline library</p>
+            </div>
+
+            <div class="downloader-container">
+                <!-- Download Options -->
+                <div class="download-service-cards">
+                    <div class="service-card">
+                        <i class="fab fa-youtube"></i>
+                        <h3>YouTube to MP3</h3>
+                        <p>Download audio from YouTube videos</p>
+                    </div>
+                    <div class="service-card">
+                        <i class="fas fa-music"></i>
+                        <h3>High Quality</h3>
+                        <p>Best audio quality available</p>
+                    </div>
+                    <div class="service-card">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Fast & Free</h3>
+                        <p>Quick downloads, no limits</p>
+                    </div>
+                </div>
+
+                <!-- Download Input -->
+                <div class="download-input-section">
+                    <h3><i class="fas fa-link"></i> Paste YouTube URL</h3>
+                    <div class="download-input-group">
+                        <input type="text" id="downloadUrl" placeholder="https://www.youtube.com/watch?v=..." class="url-input">
+                        <button class="btn btn-primary" onclick="searchForDownload()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Info Display -->
+                <div class="video-info-section" id="videoInfoSection" style="display: none;">
+                    <h3><i class="fas fa-info-circle"></i> Video Information</h3>
+                    <div class="video-info-card">
+                        <div class="video-thumbnail" id="videoThumbnail">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <div class="video-details">
+                            <h4 id="videoTitle">Video Title</h4>
+                            <p id="videoChannel">Channel Name</p>
+                            <p id="videoDuration">Duration: --:--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Services -->
+                <div class="download-services">
+                    <h3><i class="fas fa-external-link-alt"></i> Download Services</h3>
+                    <p class="services-note">Choose your preferred download service:</p>
+                    
+                    <div class="service-buttons">
+                        <button class="service-btn" onclick="openDownloadService('ytmp3')" disabled id="ytmp3Btn">
+                            <i class="fas fa-download"></i>
+                            <span>YTBmp3</span>
+                            <small>Fast & Simple</small>
+                        </button>
+                        
+                        <button class="service-btn" onclick="openDownloadService('y2mate')" disabled id="y2mateBtn">
+                            <i class="fas fa-download"></i>
+                            <span> YTMP3.nu</span>
+                            <small>Multiple Formats</small>
+                        </button>
+                        
+                        <button class="service-btn" onclick="openDownloadService('loader')" disabled id="loaderBtn">
+                            <i class="fas fa-download"></i>
+                            <span>Loader.to</span>
+                            <small>HD Quality</small>
+                        </button>
+                        
+                        <button class="service-btn" onclick="openDownloadService('savefrom')" disabled id="savefromBtn">
+                            <i class="fas fa-download"></i>
+                            <span>SaveFrom.net</span>
+                            <small>Reliable</small>
+                        </button>
+                        
+                        <button class="service-btn" onclick="openDownloadService('mp3juice')" disabled id="mp3juiceBtn">
+                            <i class="fas fa-download"></i>
+                            <span>MP3 Juice</span>
+                            <small>Free Music</small>
+                        </button>
+                        
+                        <button class="service-btn" onclick="openDownloadService('yt5s')" disabled id="yt5sBtn">
+                            <i class="fas fa-download"></i>
+                            <span>YTMP3s</span>
+                            <small>No Ads</small>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="download-instructions">
+                    <h3><i class="fas fa-question-circle"></i> How to Download</h3>
+                    <div class="instruction-steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Copy YouTube URL</h4>
+                                <p>Go to YouTube, copy the video URL from your browser</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Paste & Search</h4>
+                                <p>Paste the URL above and click Search to load video info</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Choose Service</h4>
+                                <p>Click any download service button to open the download page</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>Download & Upload</h4>
+                                <p>Download the MP3 file, then upload it to Offline Music section</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Access -->
+                <div class="quick-access-section">
+                    <h3><i class="fas fa-star"></i> Quick Access Links</h3>
+                    <div class="quick-links-grid">
+                        <a href="https://ytbmp3.com/" target="_blank" class="quick-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>YTBmp3</span>
+                        </a>
+                        <a href="https://ytmp3.nu/" target="_blank" class="quick-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>YTMP3.nu</span>
+                        </a>
+                        <a href="https://loader.to/" target="_blank" class="quick-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Loader.to</span>
+                        </a>
+                        <a href="https://en.savefrom.net/" target="_blank" class="quick-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>SaveFrom.net</span>
+                        </a>
+                        <a href="https://mp3juices.cc/" target="_blank" class="quick-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>MP3 Juice</span>
+                        </a>
+                        <a href="https://ytmp3s.nu/" target="_blank" class="quick-link">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>YTMP3s</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Saved Songs Section -->
+        <section id="saved-songs" class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-heart"></i> Saved Songs</h2>
+                <p>All your recently loaded songs and playlists - automatically saved!</p>
+            </div>
+
+            <div class="saved-songs-container">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterSavedSongs('all')">
+                        <i class="fas fa-th"></i> All
+                    </button>
+                    <button class="filter-btn" onclick="filterSavedSongs('spotify')">
+                        <i class="fab fa-spotify"></i> Spotify
+                    </button>
+                    <button class="filter-btn" onclick="filterSavedSongs('youtube')">
+                        <i class="fab fa-youtube"></i> YouTube
+                    </button>
+                </div>
+
+                <div class="saved-songs-grid" id="savedSongsGrid">
+                    <!-- Saved songs will appear here -->
                 </div>
             </div>
         </section>

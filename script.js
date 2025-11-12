@@ -1,8 +1,41 @@
+// IndexedDB Setup for Offline Music
+let db;
+let currentPlaylist = [];
+let currentTrackIndex = 0;
+let isShuffling = false;
+let isRepeating = false;
+
+function initDB() {
+    const request = indexedDB.open('TuneLocalDB', 1);
+    
+    request.onerror = function() {
+        console.error('Database failed to open');
+    };
+    
+    request.onsuccess = function() {
+        db = request.result;
+        loadOfflineMusic();
+    };
+    
+    request.onupgradeneeded = function(e) {
+        db = e.target.result;
+        
+        if (!db.objectStoreNames.contains('music')) {
+            const objectStore = db.objectStore = db.createObjectStore('music', { keyPath: 'id', autoIncrement: true });
+            objectStore.createIndex('name', 'name', { unique: false });
+            objectStore.createIndex('dateAdded', 'dateAdded', { unique: false });
+        }
+    };
+}
+
 // Navigation & Section Management
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize
+    initDB();
     loadSavedPlaylists();
+    loadSavedSongs();
     setupEventListeners();
+    setupOfflineMusicListeners();
     
     // Smooth scroll for navigation
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -80,6 +113,10 @@ function loadSpotify() {
                 loading="lazy">
             </iframe>
         `;
+        
+        // Save to saved songs
+        saveSongToHistory(url, 'spotify');
+        
         showNotification('Spotify content loaded successfully!', 'success');
     } else {
         showNotification('Invalid Spotify URL. Please check and try again.', 'error');
@@ -151,6 +188,10 @@ function loadYouTube() {
                 style="border-radius: 16px;">
             </iframe>
         `;
+        
+        // Save to saved songs
+        saveSongToHistory(url, 'youtube');
+        
         showNotification('YouTube video loaded successfully!', 'success');
     } else {
         showNotification('Invalid YouTube URL. Please check and try again.', 'error');
@@ -401,6 +442,12 @@ function setupEventListeners() {
         }
     });
     
+    document.getElementById('downloadUrl').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchForDownload();
+        }
+    });
+    
     // Form input validation
     const inputs = document.querySelectorAll('.form-input');
     inputs.forEach(input => {
@@ -414,13 +461,435 @@ function setupEventListeners() {
     });
 }
 
+// Offline Music Functions
+function setupOfflineMusicListeners() {
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const audioPlayer = document.getElementById('audioPlayer');
+    
+    // File input change
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // Drag and drop
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+    
+    // Audio player events
+    audioPlayer.addEventListener('ended', () => {
+        if (isRepeating) {
+            audioPlayer.currentTime = 0;
+            audioPlayer.play();
+        } else {
+            nextTrack();
+        }
+    });
+    
+    audioPlayer.addEventListener('play', () => {
+        document.getElementById('playIcon').className = 'fas fa-pause';
+    });
+    
+    audioPlayer.addEventListener('pause', () => {
+        document.getElementById('playIcon').className = 'fas fa-play';
+    });
+}
+
+function handleFileSelect(e) {
+    handleFiles(e.target.files);
+}
+
+function handleFiles(files) {
+    if (files.length === 0) return;
+    
+    Array.from(files).forEach(file => {
+        if (file.type.startsWith('audio/')) {
+            saveOfflineMusic(file);
+        } else {
+            showNotification(`${file.name} is not an audio file`, 'error');
+        }
+    });
+}
+
+function saveOfflineMusic(file) {
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        const transaction = db.transaction(['music'], 'readwrite');
+        const objectStore = transaction.objectStore('music');
+        
+        const musicData = {
+            name: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
+            fileName: file.name,
+            type: file.type,
+            size: file.size,
+            data: e.target.result,
+            dateAdded: new Date().toISOString()
+        };
+        
+        const request = objectStore.add(musicData);
+        
+        request.onsuccess = function() {
+            showNotification(`${file.name} uploaded successfully!`, 'success');
+            loadOfflineMusic();
+        };
+        
+        request.onerror = function() {
+            showNotification(`Failed to upload ${file.name}`, 'error');
+        };
+    };
+    
+    reader.readAsDataURL(file);
+}
+
+function loadOfflineMusic() {
+    const transaction = db.transaction(['music'], 'readonly');
+    const objectStore = transaction.objectStore('music');
+    const request = objectStore.getAll();
+    
+    request.onsuccess = function() {
+        const tracks = request.result;
+        currentPlaylist = tracks;
+        displayOfflineMusic(tracks);
+    };
+}
+
+function displayOfflineMusic(tracks) {
+    const container = document.getElementById('musicTracks');
+    const trackCount = document.getElementById('trackCount');
+    
+    trackCount.textContent = tracks.length;
+    
+    if (tracks.length === 0) {
+        container.innerHTML = `
+            <div class="empty-library">
+                <i class="fas fa-music"></i>
+                <h3>Your Library is Empty</h3>
+                <p>Upload your music files to start listening offline!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = tracks.map((track, index) => `
+        <div class="track-item" onclick="playOfflineTrack(${track.id}, ${index})">
+            <div class="track-number">${index + 1}</div>
+            <i class="fas fa-music track-icon"></i>
+            <div class="track-details">
+                <div class="track-name">${track.name}</div>
+                <div class="track-meta">
+                    ${formatFileSize(track.size)} • ${new Date(track.dateAdded).toLocaleDateString()}
+                </div>
+            </div>
+            <div class="track-actions">
+                <button class="icon-btn delete" onclick="event.stopPropagation(); deleteOfflineTrack(${track.id})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function playOfflineTrack(id, index) {
+    const transaction = db.transaction(['music'], 'readonly');
+    const objectStore = transaction.objectStore('music');
+    const request = objectStore.get(id);
+    
+    request.onsuccess = function() {
+        const track = request.result;
+        const audioPlayer = document.getElementById('audioPlayer');
+        const nowPlayingSection = document.getElementById('nowPlayingSection');
+        
+        audioPlayer.src = track.data;
+        audioPlayer.play();
+        
+        currentTrackIndex = index;
+        
+        // Update UI
+        document.getElementById('currentTrackName').textContent = track.name;
+        document.getElementById('currentTrackArtist').textContent = track.fileName;
+        nowPlayingSection.style.display = 'block';
+        
+        // Update playing state
+        document.querySelectorAll('.track-item').forEach((item, i) => {
+            if (i === index) {
+                item.classList.add('playing');
+            } else {
+                item.classList.remove('playing');
+            }
+        });
+        
+        showNotification(`Now playing: ${track.name}`, 'success');
+    };
+}
+
+function togglePlay() {
+    const audioPlayer = document.getElementById('audioPlayer');
+    if (audioPlayer.paused) {
+        audioPlayer.play();
+    } else {
+        audioPlayer.pause();
+    }
+}
+
+function nextTrack() {
+    if (currentPlaylist.length === 0) return;
+    
+    if (isShuffling) {
+        currentTrackIndex = Math.floor(Math.random() * currentPlaylist.length);
+    } else {
+        currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
+    }
+    
+    playOfflineTrack(currentPlaylist[currentTrackIndex].id, currentTrackIndex);
+}
+
+function previousTrack() {
+    if (currentPlaylist.length === 0) return;
+    
+    currentTrackIndex = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+    playOfflineTrack(currentPlaylist[currentTrackIndex].id, currentTrackIndex);
+}
+
+function toggleShuffle() {
+    isShuffling = !isShuffling;
+    const btn = document.getElementById('shuffleBtn');
+    
+    if (isShuffling) {
+        btn.classList.add('active');
+        showNotification('Shuffle enabled', 'success');
+    } else {
+        btn.classList.remove('active');
+        showNotification('Shuffle disabled', 'success');
+    }
+}
+
+function toggleRepeat() {
+    isRepeating = !isRepeating;
+    const btn = document.getElementById('repeatBtn');
+    
+    if (isRepeating) {
+        btn.classList.add('active');
+        showNotification('Repeat enabled', 'success');
+    } else {
+        btn.classList.remove('active');
+        showNotification('Repeat disabled', 'success');
+    }
+}
+
+function deleteOfflineTrack(id) {
+    if (!confirm('Delete this track from your offline library?')) {
+        return;
+    }
+    
+    const transaction = db.transaction(['music'], 'readwrite');
+    const objectStore = transaction.objectStore('music');
+    const request = objectStore.delete(id);
+    
+    request.onsuccess = function() {
+        showNotification('Track deleted', 'success');
+        loadOfflineMusic();
+        
+        // Stop playback if this was the current track
+        const audioPlayer = document.getElementById('audioPlayer');
+        if (currentPlaylist[currentTrackIndex]?.id === id) {
+            audioPlayer.pause();
+            audioPlayer.src = '';
+            document.getElementById('currentTrackName').textContent = 'No track playing';
+            document.getElementById('currentTrackArtist').textContent = 'Select a song to play';
+        }
+    };
+}
+
+function clearAllOfflineMusic() {
+    if (!confirm('Delete ALL tracks from your offline library? This cannot be undone!')) {
+        return;
+    }
+    
+    const transaction = db.transaction(['music'], 'readwrite');
+    const objectStore = transaction.objectStore('music');
+    const request = objectStore.clear();
+    
+    request.onsuccess = function() {
+        showNotification('All tracks deleted', 'success');
+        loadOfflineMusic();
+        
+        const audioPlayer = document.getElementById('audioPlayer');
+        audioPlayer.pause();
+        audioPlayer.src = '';
+        document.getElementById('currentTrackName').textContent = 'No track playing';
+        document.getElementById('currentTrackArtist').textContent = 'Select a song to play';
+        document.getElementById('nowPlayingSection').style.display = 'none';
+    };
+}
+
+// Music Downloader Functions
+let currentVideoUrl = '';
+
+function searchForDownload() {
+    const url = document.getElementById('downloadUrl').value.trim();
+    
+    if (!url) {
+        showNotification('Please enter a YouTube URL', 'error');
+        return;
+    }
+    
+    // Validate YouTube URL
+    const videoId = extractYouTubeVideoId(url);
+    
+    if (!videoId) {
+        showNotification('Invalid YouTube URL. Please check and try again.', 'error');
+        return;
+    }
+    
+    currentVideoUrl = url;
+    
+    // Show video info section
+    const videoInfoSection = document.getElementById('videoInfoSection');
+    videoInfoSection.style.display = 'block';
+    
+    // Set thumbnail
+    const thumbnail = document.getElementById('videoThumbnail');
+    thumbnail.innerHTML = `<img src="https://img.youtube.com/vi/${videoId}/maxresdefault.jpg" alt="Video Thumbnail" onerror="this.src='https://img.youtube.com/vi/${videoId}/hqdefault.jpg'">`;
+    
+    // Enable download buttons
+    enableDownloadButtons();
+    
+    // Update UI
+    document.getElementById('videoTitle').textContent = 'YouTube Video';
+    document.getElementById('videoChannel').textContent = 'Video ID: ' + videoId;
+    document.getElementById('videoDuration').textContent = 'Ready to download';
+    
+    showNotification('Video loaded! Choose a download service below.', 'success');
+    
+    // Scroll to download services
+    document.querySelector('.download-services').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function extractYouTubeVideoId(url) {
+    // Extract video ID from various YouTube URL formats
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+        /youtube\.com\/embed\/([^&\n?#]+)/,
+        /youtube\.com\/v\/([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    
+    return null;
+}
+
+function enableDownloadButtons() {
+    const buttons = [
+        'ytmp3Btn', 'y2mateBtn', 'loaderBtn', 
+        'savefromBtn', 'mp3juiceBtn', 'yt5sBtn'
+    ];
+    
+    buttons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) btn.disabled = false;
+    });
+}
+
+function openDownloadService(service) {
+    if (!currentVideoUrl) {
+        showNotification('Please search for a video first', 'error');
+        return;
+    }
+    
+    const videoId = extractYouTubeVideoId(currentVideoUrl);
+    let downloadUrl = '';
+    
+    switch(service) {
+        case 'ytmp3':
+            // YTBmp3 - paste URL manually
+            downloadUrl = `https://ytbmp3.com/`;
+            showNotification('Opening YTBmp3... Paste your YouTube URL there to download!', 'success');
+            break;
+        case 'y2mate':
+            // YTMP3.nu
+            downloadUrl = `https://ytmp3.nu/`;
+            showNotification('Opening YTMP3.nu... Paste your YouTube URL there to download!', 'success');
+            break;
+        case 'loader':
+            // Loader.to with direct URL
+            downloadUrl = `https://loader.to/api/button/?url=${encodeURIComponent(currentVideoUrl)}`;
+            showNotification('Opening Loader.to...', 'success');
+            break;
+        case 'savefrom':
+            // SaveFrom.net with URL parameter
+            downloadUrl = `https://en.savefrom.net/#url=${encodeURIComponent(currentVideoUrl)}`;
+            showNotification('Opening SaveFrom.net...', 'success');
+            break;
+        case 'mp3juice':
+            // MP3 Juice - search with video title or URL
+            downloadUrl = `https://mp3juices.cc/`;
+            showNotification('Opening MP3 Juice... Search for your song there!', 'success');
+            break;
+        case 'yt5s':
+            // YTMP3s
+            downloadUrl = `https://ytmp3s.nu/`;
+            showNotification('Opening YTMP3s... Paste your YouTube URL there to download!', 'success');
+            break;
+        default:
+            showNotification('Service not available', 'error');
+            return;
+    }
+    
+    // Open in new tab
+    window.open(downloadUrl, '_blank');
+    
+    // Copy URL to clipboard for easy pasting
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(currentVideoUrl).then(() => {
+            setTimeout(() => {
+                showNotification('YouTube URL copied to clipboard! Paste it in the download site.', 'success');
+            }, 1000);
+        }).catch(() => {
+            // Clipboard API failed, that's okay
+        });
+    }
+}
+
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
-    // Ctrl/Cmd + 1-4 for quick navigation
-    if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '4') {
+    // Ctrl/Cmd + 1-7 for quick navigation
+    if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '7') {
         e.preventDefault();
-        const sections = ['home', 'spotify', 'youtube', 'playlists'];
+        const sections = ['home', 'spotify', 'youtube', 'saved-songs', 'offline-music', 'downloader', 'playlists'];
         showSection(sections[parseInt(e.key) - 1]);
+    }
+    
+    // Space bar for play/pause (when not in input field)
+    if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        togglePlay();
     }
 });
 
@@ -456,7 +925,178 @@ function activatePartyMode() {
     }, 10000);
 }
 
+// Saved Songs Management
+function saveSongToHistory(url, type) {
+    let savedSongs = JSON.parse(localStorage.getItem('tunelocal_saved_songs') || '[]');
+    
+    // Check if URL already exists
+    const existingIndex = savedSongs.findIndex(song => song.url === url);
+    
+    if (existingIndex !== -1) {
+        // Update timestamp and move to top
+        savedSongs.splice(existingIndex, 1);
+    }
+    
+    // Extract title from URL
+    let title = extractTitleFromUrl(url, type);
+    
+    const savedSong = {
+        id: Date.now(),
+        url: url,
+        type: type,
+        title: title,
+        dateAdded: new Date().toLocaleString()
+    };
+    
+    // Add to beginning of array
+    savedSongs.unshift(savedSong);
+    
+    // Keep only last 50 songs
+    if (savedSongs.length > 50) {
+        savedSongs = savedSongs.slice(0, 50);
+    }
+    
+    localStorage.setItem('tunelocal_saved_songs', JSON.stringify(savedSongs));
+    loadSavedSongs();
+}
+
+function extractTitleFromUrl(url, type) {
+    if (type === 'spotify') {
+        // Extract Spotify type and ID
+        const match = url.match(/spotify\.com\/(playlist|album|track|artist)\/([a-zA-Z0-9]+)/);
+        if (match) {
+            const contentType = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+            return `Spotify ${contentType}`;
+        }
+    } else if (type === 'youtube') {
+        // For YouTube, just indicate it's a video/playlist
+        if (url.includes('list=')) {
+            return 'YouTube Playlist';
+        }
+        return 'YouTube Video';
+    }
+    return `${type.charAt(0).toUpperCase() + type.slice(1)} Content`;
+}
+
+function loadSavedSongs(filter = 'all') {
+    const savedSongs = JSON.parse(localStorage.getItem('tunelocal_saved_songs') || '[]');
+    const container = document.getElementById('savedSongsGrid');
+    
+    let filteredSongs = savedSongs;
+    if (filter !== 'all') {
+        filteredSongs = savedSongs.filter(song => song.type === filter);
+    }
+    
+    if (filteredSongs.length === 0) {
+        container.innerHTML = `
+            <div class="empty-saved-songs" style="grid-column: 1 / -1;">
+                <i class="fas fa-music"></i>
+                <h3>No Saved Songs Yet</h3>
+                <p>Load songs from Spotify or YouTube and they'll automatically appear here!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = filteredSongs.map(song => `
+        <div class="saved-song-card" data-type="${song.type}">
+            <div class="saved-song-header">
+                <div class="saved-song-info">
+                    <div class="saved-song-type ${song.type}">
+                        <i class="fab fa-${song.type}"></i>
+                        <span>${song.type.charAt(0).toUpperCase() + song.type.slice(1)}</span>
+                    </div>
+                    <div class="saved-song-title">${song.title}</div>
+                    <div class="saved-song-date">
+                        <i class="fas fa-clock"></i> ${song.dateAdded}
+                    </div>
+                </div>
+            </div>
+            <div class="saved-song-url">${truncateUrl(song.url)}</div>
+            <div class="saved-song-actions">
+                <button class="btn btn-primary" onclick="playSavedSong('${song.url}', '${song.type}')" style="flex: 1; justify-content: center;">
+                    <i class="fas fa-play"></i> Play
+                </button>
+                <button class="icon-btn delete" onclick="deleteSavedSong(${song.id})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function truncateUrl(url) {
+    if (url.length > 60) {
+        return url.substring(0, 57) + '...';
+    }
+    return url;
+}
+
+function filterSavedSongs(filter) {
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.closest('.filter-btn').classList.add('active');
+    
+    loadSavedSongs(filter);
+}
+
+function playSavedSong(url, type) {
+    if (type === 'spotify') {
+        document.getElementById('spotifyUrl').value = url;
+        showSection('spotify');
+        
+        // Load without saving again
+        const embedUrl = convertToSpotifyEmbed(url);
+        const playerDiv = document.getElementById('spotifyPlayer');
+        playerDiv.innerHTML = `
+            <iframe 
+                style="border-radius:12px" 
+                src="${embedUrl}" 
+                width="100%" 
+                height="400" 
+                frameBorder="0" 
+                allowfullscreen="" 
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                loading="lazy">
+            </iframe>
+        `;
+    } else if (type === 'youtube') {
+        document.getElementById('youtubeUrl').value = url;
+        showSection('youtube');
+        
+        // Load without saving again
+        const embedUrl = convertToYouTubeEmbed(url);
+        const playerDiv = document.getElementById('youtubePlayer');
+        playerDiv.innerHTML = `
+            <iframe 
+                width="100%" 
+                height="500" 
+                src="${embedUrl}" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen
+                style="border-radius: 16px;">
+            </iframe>
+        `;
+    }
+    
+    showNotification('Playing saved song!', 'success');
+}
+
+function deleteSavedSong(id) {
+    if (!confirm('Remove this song from saved songs?')) {
+        return;
+    }
+    
+    let savedSongs = JSON.parse(localStorage.getItem('tunelocal_saved_songs') || '[]');
+    savedSongs = savedSongs.filter(song => song.id !== id);
+    localStorage.setItem('tunelocal_saved_songs', JSON.stringify(savedSongs));
+    
+    loadSavedSongs();
+    showNotification('Song removed from saved songs', 'success');
+}
+
 // Console welcome message
 console.log('%c🎵 Welcome to TuneLocal! 🎵', 'color: #1db954; font-size: 20px; font-weight: bold;');
 console.log('%cEnjoy your music streaming experience!', 'color: #667eea; font-size: 14px;');
-console.log('%cKeyboard shortcuts: Ctrl/Cmd + 1-4 to navigate sections', 'color: #b3b3b3; font-size: 12px;');
+console.log('%cKeyboard shortcuts: Ctrl/Cmd + 1-7 to navigate | Space to play/pause', 'color: #b3b3b3; font-size: 12px;');
