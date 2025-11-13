@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     setupOfflineMusicListeners();
     loadOfflineMusicFromMySQL();
+    initializeDiscover();
     
     // Smooth scroll for navigation
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -1219,6 +1220,365 @@ function deleteSavedSong(id) {
     loadSavedSongs();
     showNotification('Song removed from saved songs', 'success');
 }
+
+// ==================== Discover Music Section ====================
+
+const musicCollections = [
+    // Happy Music
+    {
+        id: 'happy-pop',
+        title: 'Happy Pop Vibes',
+        description: 'Upbeat pop songs to brighten your day and get you moving',
+        category: 'happy',
+        platform: 'spotify',
+        icon: '😊',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DXdPec7aLTmlC'
+    },
+    {
+        id: 'happy-indie',
+        title: 'Feel Good Indie',
+        description: 'Indie tracks that will put a smile on your face',
+        category: 'happy',
+        platform: 'spotify',
+        icon: '🌈',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX9sIqqvKsjG8'
+    },
+    {
+        id: 'happy-mix',
+        title: 'Happy Hits',
+        description: 'The most joyful and energizing songs from all genres',
+        category: 'happy',
+        platform: 'youtube',
+        icon: '🎉',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI'
+    },
+    
+    // Chill/Relaxing Music
+    {
+        id: 'chill-vibes',
+        title: 'Chill Vibes',
+        description: 'Smooth and relaxing tracks for unwinding',
+        category: 'chill',
+        platform: 'spotify',
+        icon: '🌙',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX4WYpdgoIcn6'
+    },
+    {
+        id: 'peaceful-piano',
+        title: 'Peaceful Piano',
+        description: 'Beautiful piano melodies for relaxation and focus',
+        category: 'chill',
+        platform: 'spotify',
+        icon: '🎹',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX4sWSpwq3LiO'
+    },
+    {
+        id: 'chill-acoustic',
+        title: 'Acoustic Chill',
+        description: 'Gentle acoustic songs to calm your mind',
+        category: 'chill',
+        platform: 'youtube',
+        icon: '🎸',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLMSAf2qXzZzYe2N-pxVnrEL9FWbQ7UVFV'
+    },
+    
+    // Sad/Emotional Music
+    {
+        id: 'sad-songs',
+        title: 'Sad Songs',
+        description: 'Emotional ballads for when you need to feel your feelings',
+        category: 'sad',
+        platform: 'spotify',
+        icon: '💔',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX3YSRoSdA634'
+    },
+    {
+        id: 'melancholic',
+        title: 'Melancholic Moods',
+        description: 'Beautiful melancholic tracks for introspective moments',
+        category: 'sad',
+        platform: 'spotify',
+        icon: '🌧️',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX7qK8ma5wgG1'
+    },
+    {
+        id: 'emotional-piano',
+        title: 'Emotional Piano',
+        description: 'Heart-touching piano compositions',
+        category: 'sad',
+        platform: 'youtube',
+        icon: '😢',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLw-0-FN28qyADdF8dJumKb2Y3VnhVxqPR'
+    },
+    
+    // Energetic/Workout Music
+    {
+        id: 'workout-motivation',
+        title: 'Workout Motivation',
+        description: 'High-energy tracks to power through your workout',
+        category: 'energetic',
+        platform: 'spotify',
+        icon: '💪',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX76Wlfdnj7AP'
+    },
+    {
+        id: 'beast-mode',
+        title: 'Beast Mode',
+        description: 'Aggressive beats to unleash your inner beast',
+        category: 'energetic',
+        platform: 'spotify',
+        icon: '🔥',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX70RN3TfWWJh'
+    },
+    {
+        id: 'edm-workout',
+        title: 'EDM Workout',
+        description: 'Electronic dance music for maximum energy',
+        category: 'energetic',
+        platform: 'youtube',
+        icon: '⚡',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLYUn4YaogdahwfSZFMG5s3wSNhGu1ohls'
+    },
+    
+    // Anime Music
+    {
+        id: 'anime-openings',
+        title: 'Anime Openings',
+        description: 'Epic anime opening themes from popular series',
+        category: 'anime',
+        platform: 'youtube',
+        icon: '🎌',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLwazKLaN7rLhV89fwraGUmsk5N4bH28Rx'
+    },
+    {
+        id: 'anime-ost',
+        title: 'Anime Soundtracks',
+        description: 'Beautiful soundtracks from beloved anime series',
+        category: 'anime',
+        platform: 'youtube',
+        icon: '🎬',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLhzubg2dJf9ipRK1-ZBRcQy-_RbmB5FGA'
+    },
+    {
+        id: 'anime-emotional',
+        title: 'Emotional Anime OST',
+        description: 'Heart-touching anime music for the feels',
+        category: 'anime',
+        platform: 'youtube',
+        icon: '😭',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLRmVsLlLaU7jqIvQTEHPEZCBEH_WOKlI7'
+    },
+    
+    // Phonk Music
+    {
+        id: 'phonk-drift',
+        title: 'Phonk Drift',
+        description: 'Aggressive phonk beats for night drives',
+        category: 'phonk',
+        platform: 'youtube',
+        icon: '🚗',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLHmTsVREU3Ar1AJWkimkl6Pux3R5PB-QJ'
+    },
+    {
+        id: 'brazilian-phonk',
+        title: 'Brazilian Phonk',
+        description: 'Dark Brazilian phonk for intense vibes',
+        category: 'phonk',
+        platform: 'youtube',
+        icon: '🌙',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLYUn4Yaogdagd7r-TuN67x1MgE8z4oLy6'
+    },
+    {
+        id: 'memphis-phonk',
+        title: 'Memphis Phonk',
+        description: 'Classic Memphis-style phonk tracks',
+        category: 'phonk',
+        platform: 'youtube',
+        icon: '🔊',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLzCxunOM5WFLXwBk1ZNKXuSo5tNGcSDC9'
+    },
+    
+    // Lo-Fi Music
+    {
+        id: 'lofi-study',
+        title: 'Lo-Fi Study Beats',
+        description: 'Chill beats to study and relax to',
+        category: 'lofi',
+        platform: 'youtube',
+        icon: '📚',
+        embedUrl: 'https://www.youtube.com/embed/jfKfPfyJRdk'
+    },
+    {
+        id: 'lofi-sleep',
+        title: 'Lo-Fi Sleep',
+        description: 'Gentle lo-fi beats for peaceful sleep',
+        category: 'lofi',
+        platform: 'youtube',
+        icon: '😴',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLOzDu-MXXLliO9fBNZOQTBDddoA3FzZUo'
+    },
+    {
+        id: 'lofi-jazz',
+        title: 'Lo-Fi Jazz Hip Hop',
+        description: 'Smooth jazz-influenced lo-fi hip hop beats',
+        category: 'lofi',
+        platform: 'spotify',
+        icon: '🎷',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DWWQRwui0ExPn'
+    },
+    
+    // Rock Music
+    {
+        id: 'rock-classics',
+        title: 'Rock Classics',
+        description: 'Legendary rock anthems from the greatest bands',
+        category: 'rock',
+        platform: 'spotify',
+        icon: '🎸',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U'
+    },
+    {
+        id: 'modern-rock',
+        title: 'Modern Rock',
+        description: 'Contemporary rock hits and alternative tracks',
+        category: 'rock',
+        platform: 'spotify',
+        icon: '🤘',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcF6B6QPhFDv'
+    },
+    {
+        id: 'rock-workout',
+        title: 'Rock Workout',
+        description: 'High-energy rock for intense workouts',
+        category: 'rock',
+        platform: 'youtube',
+        icon: '💥',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLw-0-FN28qyCx-1HdMJVfLPEEOa2qGqXJ'
+    },
+    
+    // Electronic Music
+    {
+        id: 'edm-festival',
+        title: 'EDM Festival Hits',
+        description: 'Biggest EDM bangers from festivals worldwide',
+        category: 'electronic',
+        platform: 'spotify',
+        icon: '🎧',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX4JAvHpjipBk'
+    },
+    {
+        id: 'house-music',
+        title: 'House Music',
+        description: 'Deep house and progressive house grooves',
+        category: 'electronic',
+        platform: 'spotify',
+        icon: '🏠',
+        embedUrl: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX8tZsk68tuDw'
+    },
+    {
+        id: 'dubstep',
+        title: 'Dubstep Drops',
+        description: 'Heavy dubstep with massive bass drops',
+        category: 'electronic',
+        platform: 'youtube',
+        icon: '🔊',
+        embedUrl: 'https://www.youtube.com/embed/videoseries?list=PLYUn4YaogdaiS5NZ0FPBQqA3pVKhXu9PD'
+    }
+];
+
+let currentDiscoverCategory = 'all';
+
+function initializeDiscover() {
+    renderDiscoverGrid();
+    setupCategoryFilters();
+}
+
+function setupCategoryFilters() {
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            categoryBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentDiscoverCategory = btn.dataset.category;
+            renderDiscoverGrid();
+        });
+    });
+}
+
+function renderDiscoverGrid() {
+    const grid = document.getElementById('discoverGrid');
+    if (!grid) return;
+    
+    let filteredCollections = musicCollections;
+    if (currentDiscoverCategory !== 'all') {
+        filteredCollections = musicCollections.filter(c => c.category === currentDiscoverCategory);
+    }
+    
+    grid.innerHTML = filteredCollections.map(collection => `
+        <div class="discover-card" onclick="playDiscoverMusic('${collection.id}')">
+            <div class="discover-card-header">
+                <div class="discover-card-icon">${collection.icon}</div>
+                <div class="discover-card-title">
+                    <h3>${collection.title}</h3>
+                    <span class="discover-card-category">${collection.category}</span>
+                </div>
+            </div>
+            <p class="discover-card-description">${collection.description}</p>
+            <div class="discover-card-footer">
+                <div class="discover-card-platform">
+                    <i class="fab fa-${collection.platform}"></i>
+                    <span>${collection.platform === 'spotify' ? 'Spotify' : 'YouTube'}</span>
+                </div>
+                <div class="discover-card-play">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function playDiscoverMusic(collectionId) {
+    const collection = musicCollections.find(c => c.id === collectionId);
+    if (!collection) return;
+    
+    const modal = document.getElementById('discoverPlayerModal');
+    const title = document.getElementById('discoverModalTitle');
+    const container = document.getElementById('discoverPlayerContainer');
+    
+    title.innerHTML = `<i class="fas fa-music"></i> ${collection.title}`;
+    
+    container.innerHTML = `
+        <iframe 
+            src="${collection.embedUrl}" 
+            width="100%" 
+            height="500" 
+            frameborder="0" 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+            loading="lazy"
+            style="border-radius: 12px;">
+        </iframe>
+    `;
+    
+    modal.style.display = 'flex';
+    showNotification(`Now playing: ${collection.title}`, 'success');
+}
+
+function closeDiscoverPlayer() {
+    const modal = document.getElementById('discoverPlayerModal');
+    const container = document.getElementById('discoverPlayerContainer');
+    modal.style.display = 'none';
+    container.innerHTML = ''; // Stop playback
+}
+
+// Close discover modal with ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('discoverPlayerModal');
+        if (modal && modal.style.display === 'flex') {
+            closeDiscoverPlayer();
+        }
+    }
+});
 
 // Console welcome message
 console.log('%c🎵 Welcome to TuneLocal! 🎵', 'color: #1db954; font-size: 20px; font-weight: bold;');
