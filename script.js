@@ -571,6 +571,7 @@ function loadOfflineMusicFromMySQL() {
         .then(data => {
             if (data.success) {
                 currentPlaylist = data.tracks;
+                updateAllTracksCache(data.tracks);
                 displayOfflineMusicFromMySQL(data.tracks);
                 updateStorageStatsMySQL();
             } else {
@@ -653,6 +654,29 @@ function formatFileSize(bytes) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Store all tracks for searching
+let allOfflineTracks = [];
+
+function updateAllTracksCache(tracks) {
+    allOfflineTracks = tracks;
+}
+
+function searchOfflineMusic(query) {
+    const searchTerm = query.toLowerCase().trim();
+    
+    if (!searchTerm) {
+        displayOfflineMusicFromMySQL(allOfflineTracks);
+        return;
+    }
+    
+    const filtered = allOfflineTracks.filter(track => 
+        track.name.toLowerCase().includes(searchTerm) ||
+        track.file_name.toLowerCase().includes(searchTerm)
+    );
+    
+    displayOfflineMusicFromMySQL(filtered);
 }
 
 function playOfflineTrackMySQL(id, index) {
