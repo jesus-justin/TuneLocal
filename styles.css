@@ -1087,6 +1087,33 @@ body {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
+    align-items: center;
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-input {
+    padding: 1rem 1.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    background: var(--bg-light);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    flex: 1;
+    min-width: 200px;
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
+    background: var(--bg-card);
+}
+
+.search-input::placeholder {
+    color: var(--text-secondary);
 }
 
 .music-tracks {
