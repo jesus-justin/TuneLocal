@@ -206,6 +206,23 @@ body {
     color: var(--text-primary);
 }
 
+/* Strong focus styles for keyboard users */
+.nav-link:focus-visible,
+.btn:focus-visible,
+.icon-btn:focus-visible,
+.filter-btn:focus-visible,
+.category-btn:focus-visible,
+.service-btn:focus-visible,
+.control-btn:focus-visible,
+.search-input:focus-visible,
+.url-input:focus-visible,
+.form-input:focus-visible,
+.quick-link:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(29,185,84,0.25);
+}
+
 .nav-link:hover::before,
 .nav-link.active::before {
     width: 80%;
