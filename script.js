@@ -393,6 +393,11 @@ function showNotification(message, type = 'info') {
     `;
     
     document.body.appendChild(notification);
+    // Update ARIA live region for assistive tech
+    const ariaLive = document.getElementById('ariaLive');
+    if (ariaLive) {
+        ariaLive.textContent = message;
+    }
     
     // Auto remove after 3 seconds
     setTimeout(() => {
