@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
     setupOfflineMusicListeners();
     loadOfflineMusicFromMySQL();
     initializeDiscover();
+    // Apply saved theme
+    try {
+        const savedTheme = preferencesManager?.get('theme', 'dark');
+        applyTheme(savedTheme);
+    } catch {}
     
     // Smooth scroll for navigation
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -53,18 +58,36 @@ function showSection(sectionId) {
 
 // Theme Toggle
 const themeToggle = document.querySelector('.theme-toggle');
+themeToggle.setAttribute('role', 'button');
+themeToggle.setAttribute('aria-label', 'Toggle theme');
+themeToggle.setAttribute('tabindex', '0');
 themeToggle.addEventListener('click', function() {
-    document.body.classList.toggle('light-theme');
-    const icon = this.querySelector('i');
-    
-    if (document.body.classList.contains('light-theme')) {
+    const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+    applyTheme(nextTheme);
+});
+themeToggle.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+        applyTheme(nextTheme);
+    }
+});
+
+function applyTheme(theme) {
+    const isLight = theme === 'light';
+    document.body.classList.toggle('light-theme', isLight);
+    const icon = themeToggle.querySelector('i');
+    if (isLight) {
         icon.classList.remove('fa-moon');
         icon.classList.add('fa-sun');
+        themeToggle.setAttribute('aria-pressed', 'true');
     } else {
         icon.classList.remove('fa-sun');
         icon.classList.add('fa-moon');
+        themeToggle.setAttribute('aria-pressed', 'false');
     }
-});
+    try { preferencesManager?.set('theme', isLight ? 'light' : 'dark'); } catch {}
+}
 
 // Spotify Functions
 function loadSpotify() {
