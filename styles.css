@@ -1907,3 +1907,13 @@ audio {
     animation: spin 1s linear infinite;
     margin: 2rem auto;
 }
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+    .visualizer { display: none; }
+}
