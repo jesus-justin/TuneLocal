@@ -1,0 +1,59 @@
+/* Top Loading Progress Bar */
+.progress-bar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: transparent;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        var(--primary-color) 0%, 
+        #1ed760 50%, 
+        var(--primary-color) 100%
+    );
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px var(--primary-color);
+}
+
+.progress-bar.loading {
+    animation: progress-indeterminate 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+    0% {
+        width: 0%;
+        margin-left: 0%;
+    }
+    50% {
+        width: 50%;
+        margin-left: 25%;
+    }
+    100% {
+        width: 0%;
+        margin-left: 100%;
+    }
+}
+
+/* Show progress bar during page load */
+.progress-bar.page-load {
+    animation: page-load 2s ease forwards;
+}
+
+@keyframes page-load {
+    0% {
+        width: 0%;
+    }
+    50% {
+        width: 70%;
+    }
+    100% {
+        width: 100%;
+    }
+}
