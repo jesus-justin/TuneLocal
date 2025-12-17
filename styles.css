@@ -2122,12 +2122,47 @@ audio {
     margin-bottom: 1rem;
 }
 
+/* Scroll-triggered Animations */
+.scroll-animate {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.scroll-animate.fade-in-down {
+    transform: translateY(-30px);
+}
+
+.scroll-animate.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger animation for multiple elements */
+.scroll-animate:nth-child(1) { transition-delay: 0.1s; }
+.scroll-animate:nth-child(2) { transition-delay: 0.2s; }
+.scroll-animate:nth-child(3) { transition-delay: 0.3s; }
+.scroll-animate:nth-child(4) { transition-delay: 0.4s; }
+.scroll-animate:nth-child(5) { transition-delay: 0.5s; }
+.scroll-animate:nth-child(6) { transition-delay: 0.6s; }
+
+/* Parallax effect for hero section */
+.hero {
+    will-change: transform, opacity;
+    transition: transform 0.1s ease-out;
+}
+
 /* Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
     * {
         animation: none !important;
         transition: none !important;
         scroll-behavior: auto !important;
+    
+    .scroll-animate {
+        opacity: 1;
+        transform: none;
+    }
     }
     .visualizer { display: none; }
 }
