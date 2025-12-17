@@ -14,6 +14,11 @@
     --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --gradient-animated: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsla(28,100%,74%,0.3) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsla(189,100%,56%,0.3) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsla(355,100%,93%,0.3) 0px, transparent 50%),
+                     radial-gradient(at 80% 50%, hsla(340,100%,76%,0.3) 0px, transparent 50%);
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -263,10 +268,25 @@ body {
     min-height: calc(100vh - 200px);
 }
 
-/* Sections */
+/* Sections with Animated Gradient Overlay */
 .section {
     display: none;
     animation: fadeIn 0.5s ease-in-out;
+    position: relative;
+}
+
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-mesh);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: -1;
+    animation: gradientShift 15s ease infinite;
 }
 
 .section.active {
@@ -281,6 +301,17 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        opacity: 0.15;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.25;
+        transform: scale(1.1);
     }
 }
 
