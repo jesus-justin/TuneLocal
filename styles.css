@@ -395,7 +395,9 @@ body {
 }
 
 .stat-card {
-    background: var(--bg-card);
+    background: rgba(40, 40, 40, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     padding: 2rem;
     border-radius: 16px;
     box-shadow: var(--shadow-md);
@@ -406,6 +408,8 @@ body {
 .stat-card:hover {
     transform: translateY(-10px);
     box-shadow: var(--shadow-lg);
+    background: rgba(40, 40, 40, 0.8);
+    border-color: rgba(29, 185, 84, 0.5);
 }
 
 .stat-card i {
@@ -446,9 +450,11 @@ body {
     font-size: 1.4rem;
 }
 
-/* Player Container */
+/* Player Container - Glassmorphism */
 .player-container {
-    background: var(--bg-card);
+    background: rgba(40, 40, 40, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     padding: 2rem;
     border-radius: 20px;
     box-shadow: var(--shadow-lg);
