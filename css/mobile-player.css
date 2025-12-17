@@ -1,0 +1,139 @@
+/* Mobile Bottom Player - Sticky mini-player for mobile devices */
+.mobile-bottom-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 1rem;
+    z-index: 999;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-bottom-player.active {
+    transform: translateY(0);
+}
+
+.mobile-player-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 100%;
+}
+
+.mobile-player-thumbnail {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    background: var(--gradient-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mobile-player-thumbnail i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.mobile-player-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.mobile-player-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.25rem;
+}
+
+.mobile-player-artist {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mobile-player-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.mobile-control-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.mobile-control-btn:hover {
+    transform: scale(1.1);
+}
+
+.mobile-control-btn:active {
+    transform: scale(0.95);
+}
+
+.mobile-control-btn.play-btn {
+    width: 45px;
+    height: 45px;
+}
+
+.mobile-control-btn i {
+    font-size: 1rem;
+}
+
+.mobile-player-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-progress-bar {
+    height: 100%;
+    background: var(--primary-color);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Show mobile player only on mobile devices */
+@media (min-width: 769px) {
+    .mobile-bottom-player {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-bottom-player {
+        display: block;
+    }
+    
+    /* Adjust FAB position on mobile when player is active */
+    .fab-container {
+        bottom: 6rem;
+    }
+}
