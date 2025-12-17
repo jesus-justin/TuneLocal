@@ -63,6 +63,27 @@
         </div>
     </nav>
 
+    <!-- Floating Action Button -->
+    <div class="fab-container">
+        <button class="fab-button" id="fabButton" aria-label="Quick Actions">
+            <i class="fas fa-bolt"></i>
+        </button>
+        <div class="fab-menu" id="fabMenu">
+            <button class="fab-action" onclick="showSection('spotify')" title="Open Spotify">
+                <i class="fab fa-spotify"></i>
+            </button>
+            <button class="fab-action" onclick="showSection('youtube')" title="Open YouTube">
+                <i class="fab fa-youtube"></i>
+            </button>
+            <button class="fab-action" onclick="showSection('offline-music')" title="Offline Music">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="fab-action" onclick="showSection('playlists')" title="Playlists">
+                <i class="fas fa-list-ul"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <main id="main" class="main-container" role="main">
         
@@ -614,6 +635,7 @@
     <script src="js/preferences.js"></script>
     <script src="js/keyboard-shortcuts.js"></script>
     <script src="js/particle-system.js"></script>
+    <script src="js/fab-menu.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
