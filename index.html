@@ -27,6 +27,7 @@
         <div class="wave wave2"></div>
         <div class="wave wave3"></div>
     </div>
+    <div class="grain-overlay" aria-hidden="true"></div>
 
     <!-- Navbar -->
     <nav class="navbar" role="navigation" aria-label="Primary">
@@ -65,6 +66,13 @@
                 <i class="fas fa-moon"></i>
             </div>
         </div>
+        <div class="nav-quick-strip" aria-label="Quick navigation">
+            <a href="#home" class="nav-link nav-pill" data-section="home">Home</a>
+            <a href="#spotify" class="nav-link nav-pill" data-section="spotify">Spotify</a>
+            <a href="#youtube" class="nav-link nav-pill" data-section="youtube">YouTube</a>
+            <a href="#offline-music" class="nav-link nav-pill" data-section="offline-music">Offline</a>
+            <a href="#playlists" class="nav-link nav-pill" data-section="playlists">Playlists</a>
+        </div>
     </nav>
 
     <!-- Floating Action Button -->
@@ -94,19 +102,81 @@
         <!-- Home Section -->
         <section id="home" class="section active">
             <div class="hero">
-                <div class="hero-content">
-                    <h1 class="glitch" data-text="Welcome to TuneLocal">Welcome to TuneLocal</h1>
-                    <p class="hero-subtitle">Your personal music streaming hub - All your favorite music in one place</p>
-                    <div class="hero-buttons">
-                        <button class="btn btn-primary" onclick="showSection('spotify')">
-                            <i class="fab fa-spotify"></i> Open Spotify
-                        </button>
-                        <button class="btn btn-secondary" onclick="showSection('youtube')">
-                            <i class="fab fa-youtube"></i> Open YouTube
-                        </button>
+                <div class="hero-layout">
+                    <div class="hero-content">
+                        <h1 class="glitch" data-text="Welcome to TuneLocal">Welcome to TuneLocal</h1>
+                        <p class="hero-subtitle">Your personal music streaming hub - All your favorite music in one place</p>
+                        <div class="hero-badges">
+                            <span class="pill-badge"><i class="fas fa-shield-alt"></i> Private & local-first</span>
+                            <span class="pill-badge"><i class="fas fa-bolt"></i> Snappy embeds</span>
+                            <span class="pill-badge"><i class="fas fa-cloud-moon"></i> Offline ready</span>
+                        </div>
+                        <div class="hero-buttons">
+                            <button class="btn btn-primary" onclick="showSection('spotify')">
+                                <i class="fab fa-spotify"></i> Open Spotify
+                            </button>
+                            <button class="btn btn-secondary" onclick="showSection('youtube')">
+                                <i class="fab fa-youtube"></i> Open YouTube
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="hero-now-card surface-card">
+                            <div class="hero-now-top">
+                                <span class="pill-badge"><i class="fas fa-wave-square"></i> Now playing mock</span>
+                                <span class="pill-badge hero-live"><i class="fas fa-circle"></i> Live</span>
+                            </div>
+                            <div class="hero-track">
+                                <div class="hero-track-art">
+                                    <i class="fas fa-music"></i>
+                                </div>
+                                <div class="hero-track-meta">
+                                    <p class="eyebrow">Synthwave • 4:12</p>
+                                    <h3>Neon Night Drive</h3>
+                                    <p class="meta">YouTube + Spotify in one hub</p>
+                                </div>
+                                <div class="hero-track-cta">
+                                    <button class="icon-btn" onclick="showSection('offline-music')" title="Offline library">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="hero-meter">
+                                <span class="meter-label">Responsive player</span>
+                                <div class="meter-bars">
+                                    <span class="meter-bar"></span>
+                                    <span class="meter-bar"></span>
+                                    <span class="meter-bar"></span>
+                                    <span class="meter-bar"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hero-trust surface-card">
+                            <div class="trust-item">
+                                <i class="fas fa-lock"></i>
+                                <div>
+                                    <p class="eyebrow">No tracking</p>
+                                    <strong>Stay in control</strong>
+                                </div>
+                            </div>
+                            <div class="trust-item">
+                                <i class="fas fa-rocket"></i>
+                                <div>
+                                    <p class="eyebrow">Optimized</p>
+                                    <strong>Low-latency playback</strong>
+                                </div>
+                            </div>
+                            <div class="trust-item">
+                                <i class="fas fa-moon"></i>
+                                <div>
+                                    <p class="eyebrow">Themes</p>
+                                    <strong>Light / Dark</strong>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="stats-container">
                     <div class="stat-card">
                         <i class="fas fa-music"></i>
@@ -129,9 +199,13 @@
 
         <!-- Spotify Section -->
         <section id="spotify" class="section">
-            <div class="section-header">
-                <h2><i class="fab fa-spotify"></i> Spotify Player</h2>
-                <p>Enjoy your favorite Spotify playlists and albums</p>
+            <div class="section-masthead">
+                <div class="masthead-left">
+                    <span class="masthead-eyebrow"><i class="fab fa-spotify"></i> Spotify</span>
+                    <h2 class="masthead-title">Spotify Player</h2>
+                    <p class="masthead-subtitle">Enjoy your favorite Spotify playlists and albums</p>
+                </div>
+                <div class="masthead-accent"><i class="fab fa-spotify"></i></div>
             </div>
             
             <div class="player-container">
@@ -172,9 +246,13 @@
 
         <!-- YouTube Section -->
         <section id="youtube" class="section">
-            <div class="section-header">
-                <h2><i class="fab fa-youtube"></i> YouTube Player</h2>
-                <p>Watch and listen to music videos from YouTube</p>
+            <div class="section-masthead">
+                <div class="masthead-left">
+                    <span class="masthead-eyebrow"><i class="fab fa-youtube"></i> YouTube</span>
+                    <h2 class="masthead-title">YouTube Player</h2>
+                    <p class="masthead-subtitle">Watch and listen to music videos from YouTube</p>
+                </div>
+                <div class="masthead-accent"><i class="fab fa-youtube"></i></div>
             </div>
             
             <div class="player-container">
@@ -215,9 +293,13 @@
 
         <!-- Discover Music Section -->
         <section id="discover" class="section">
-            <div class="section-header">
-                <h2><i class="fas fa-compass"></i> Discover Music</h2>
-                <p>Explore curated music collections by mood and genre</p>
+            <div class="section-masthead">
+                <div class="masthead-left">
+                    <span class="masthead-eyebrow"><i class="fas fa-compass"></i> Discover</span>
+                    <h2 class="masthead-title">Discover Music</h2>
+                    <p class="masthead-subtitle">Explore curated music collections by mood and genre</p>
+                </div>
+                <div class="masthead-accent"><i class="fas fa-compass"></i></div>
             </div>
 
             <div class="discover-container">
@@ -279,9 +361,13 @@
 
         <!-- Offline Music Section -->
         <section id="offline-music" class="section">
-            <div class="section-header">
-                <h2><i class="fas fa-download"></i> Offline Music Library</h2>
-                <p>Upload and play your own music files - works 100% offline!</p>
+            <div class="section-masthead">
+                <div class="masthead-left">
+                    <span class="masthead-eyebrow"><i class="fas fa-download"></i> Offline</span>
+                    <h2 class="masthead-title">Offline Music Library</h2>
+                    <p class="masthead-subtitle">Upload and play your own music files - works 100% offline!</p>
+                </div>
+                <div class="masthead-accent"><i class="fas fa-download"></i></div>
             </div>
 
             <div class="offline-music-container">
@@ -312,52 +398,69 @@
                         </div>
                     </div>
                     
-                    <audio id="audioPlayer" controls style="width: 100%; margin-top: 1rem;">
-                        Your browser does not support the audio element.
-                    </audio>
-                    
-                    <div class="player-controls">
-                        <button class="control-btn" onclick="previousTrack()">
-                            <i class="fas fa-step-backward"></i>
-                        </button>
-                        <button class="control-btn play-btn" onclick="togglePlay()">
-                            <i class="fas fa-play" id="playIcon"></i>
-                        </button>
-                        <button class="control-btn" onclick="nextTrack()">
-                            <i class="fas fa-step-forward"></i>
-                        </button>
-                        <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn">
-                            <i class="fas fa-random"></i>
-                        </button>
-                        <button class="control-btn" onclick="toggleRepeat()" id="repeatBtn">
-                            <i class="fas fa-redo"></i>
-                        </button>
+                    <div class="player-dock">
+                        <audio id="audioPlayer" controls style="width: 100%; margin-top: 0;">
+                            Your browser does not support the audio element.
+                        </audio>
+                        
+                        <div class="player-controls">
+                            <button class="control-btn" onclick="previousTrack()">
+                                <i class="fas fa-step-backward"></i>
+                            </button>
+                            <button class="control-btn play-btn" onclick="togglePlay()">
+                                <i class="fas fa-play" id="playIcon"></i>
+                            </button>
+                            <button class="control-btn" onclick="nextTrack()">
+                                <i class="fas fa-step-forward"></i>
+                            </button>
+                            <button class="control-btn" onclick="toggleShuffle()" id="shuffleBtn">
+                                <i class="fas fa-random"></i>
+                            </button>
+                            <button class="control-btn" onclick="toggleRepeat()" id="repeatBtn">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Storage Stats -->
-                <div class="storage-stats" id="storageStats">
-                    <div class="stat-item">
-                        <i class="fas fa-database"></i>
-                        <div class="stat-info">
-                            <span class="stat-label">Storage Used</span>
-                            <span class="stat-value" id="storageUsed">0 MB</span>
+                <!-- Storage Stats & Summary -->
+                <div class="storage-top-grid">
+                    <div class="storage-stats" id="storageStats">
+                        <div class="stat-item">
+                            <i class="fas fa-database"></i>
+                            <div class="stat-info">
+                                <span class="stat-label">Storage Used</span>
+                                <span class="stat-value" id="storageUsed">0 MB</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-hdd"></i>
+                            <div class="stat-info">
+                                <span class="stat-label">Available Space</span>
+                                <span class="stat-value" id="storageAvailable">Calculating...</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-file-audio"></i>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Files</span>
+                                <span class="stat-value" id="totalFiles">0</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-item">
-                        <i class="fas fa-hdd"></i>
-                        <div class="stat-info">
-                            <span class="stat-label">Available Space</span>
-                            <span class="stat-value" id="storageAvailable">Calculating...</span>
+
+                    <aside class="storage-summary surface-card">
+                        <div class="summary-header">
+                            <span class="pill-badge"><i class="fas fa-shield-alt"></i> Local-first</span>
+                            <h4>Storage Snapshot</h4>
+                            <p class="masthead-subtitle">Your uploads stay on this device. Perfect for flights, commutes, and focus sessions.</p>
                         </div>
-                    </div>
-                    <div class="stat-item">
-                        <i class="fas fa-file-audio"></i>
-                        <div class="stat-info">
-                            <span class="stat-label">Total Files</span>
-                            <span class="stat-value" id="totalFiles">0</span>
-                        </div>
-                    </div>
+                        <ul class="summary-list">
+                            <li><i class="fas fa-check-circle"></i> Drag & drop or browse — no size limits inside your disk.</li>
+                            <li><i class="fas fa-check-circle"></i> Shuffle + repeat toggles already wired to the player.</li>
+                            <li><i class="fas fa-check-circle"></i> Export all to keep backups synced.</li>
+                        </ul>
+                    </aside>
                 </div>
 
                 <!-- Music Library -->
@@ -383,9 +486,13 @@
 
         <!-- Downloader Section -->
         <section id="downloader" class="section">
-            <div class="section-header">
-                <h2><i class="fas fa-cloud-download-alt"></i> Music Downloader</h2>
-                <p>Download music from YouTube and save to your offline library</p>
+            <div class="section-masthead">
+                <div class="masthead-left">
+                    <span class="masthead-eyebrow"><i class="fas fa-cloud-download-alt"></i> Downloader</span>
+                    <h2 class="masthead-title">Music Downloader</h2>
+                    <p class="masthead-subtitle">Download music from YouTube and save to your offline library</p>
+                </div>
+                <div class="masthead-accent"><i class="fas fa-cloud-download-alt"></i></div>
             </div>
 
             <div class="downloader-container">
@@ -416,6 +523,41 @@
                         <button class="btn btn-primary" onclick="searchForDownload()">
                             <i class="fas fa-search"></i> Search
                         </button>
+                    </div>
+                </div>
+
+                <div class="download-timeline surface-card">
+                    <div class="timeline-step active">
+                        <span class="step-dot"></span>
+                        <div>
+                            <p class="eyebrow">Step 1</p>
+                            <strong>Paste URL</strong>
+                            <p class="masthead-subtitle">Drop the YouTube link above.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <span class="step-dot"></span>
+                        <div>
+                            <p class="eyebrow">Step 2</p>
+                            <strong>Fetch Info</strong>
+                            <p class="masthead-subtitle">Enable a service button once loaded.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <span class="step-dot"></span>
+                        <div>
+                            <p class="eyebrow">Step 3</p>
+                            <strong>Pick Service</strong>
+                            <p class="masthead-subtitle">Choose the format/site you prefer.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <span class="step-dot"></span>
+                        <div>
+                            <p class="eyebrow">Step 4</p>
+                            <strong>Save Offline</strong>
+                            <p class="masthead-subtitle">Upload the file into Offline Music.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -548,20 +690,24 @@
 
         <!-- Saved Songs Section -->
         <section id="saved-songs" class="section">
-            <div class="section-header">
-                <h2><i class="fas fa-heart"></i> Saved Songs</h2>
-                <p>All your recently loaded songs and playlists - automatically saved!</p>
+            <div class="section-masthead">
+                <div class="masthead-left">
+                    <span class="masthead-eyebrow"><i class="fas fa-heart"></i> Saved</span>
+                    <h2 class="masthead-title">Saved Songs</h2>
+                    <p class="masthead-subtitle">All your recently loaded songs and playlists - automatically saved!</p>
+                </div>
+                <div class="masthead-accent"><i class="fas fa-heart"></i></div>
             </div>
 
             <div class="saved-songs-container">
                 <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterSavedSongs('all')">
+                    <button class="filter-btn active" data-count="--" onclick="filterSavedSongs('all')">
                         <i class="fas fa-th"></i> All
                     </button>
-                    <button class="filter-btn" onclick="filterSavedSongs('spotify')">
+                    <button class="filter-btn" data-count="--" onclick="filterSavedSongs('spotify')">
                         <i class="fab fa-spotify"></i> Spotify
                     </button>
-                    <button class="filter-btn" onclick="filterSavedSongs('youtube')">
+                    <button class="filter-btn" data-count="--" onclick="filterSavedSongs('youtube')">
                         <i class="fab fa-youtube"></i> YouTube
                     </button>
                 </div>
@@ -574,9 +720,13 @@
 
         <!-- Playlists Section -->
         <section id="playlists" class="section">
-            <div class="section-header">
-                <h2><i class="fas fa-list-ul"></i> My Playlists</h2>
-                <p>Save and organize your favorite playlists</p>
+            <div class="section-masthead">
+                <div class="masthead-left">
+                    <span class="masthead-eyebrow"><i class="fas fa-list-ul"></i> Playlists</span>
+                    <h2 class="masthead-title">My Playlists</h2>
+                    <p class="masthead-subtitle">Save and organize your favorite playlists</p>
+                </div>
+                <div class="masthead-accent"><i class="fas fa-list-ul"></i></div>
             </div>
 
             <div class="playlists-container">
