@@ -2,7 +2,21 @@
 
 A feature-rich, self-hosted music streaming platform with offline capabilities, multiple music sources, and unlimited storage via MySQL.
 
-## ✨ Features
+## 🎉 NEW in 2025! - 10 Powerful Features Added
+- 🎤 **Lyrics Display** - Synchronized lyrics with auto-scroll
+- 📋 **Queue Management** - Drag-and-drop queue with full control
+- 🌓 **Theme Scheduler** - Auto dark/light mode by time
+- 📊 **Music Analytics** - Listening history & insights
+- 🎚️ **Crossfade** - Smooth transitions between tracks
+- ⭐ **Favorites System** - Bookmark your best tracks
+- 🎯 **Mini Player** - Floating compact player
+- 🎙️ **Voice Search** - Hands-free voice commands
+- 💾 **Playlist Import/Export** - JSON & M3U support
+- 🎛️ **Audio Effects** - Bass boost, echo, 3D sound
+
+See [NEW_FEATURES_2025.md](NEW_FEATURES_2025.md) for complete documentation!
+
+## ✨ Core Features
 
 ### 🎵 Music Streaming
 - **Spotify Integration** - Stream playlists, albums, and tracks from Spotify
