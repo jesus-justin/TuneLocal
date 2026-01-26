@@ -258,9 +258,9 @@ body {
     }
 }
 
-/* Navbar */
+/* Navbar with Animated Gradient */
 .navbar {
-    background: rgba(12, 12, 12, 0.85);
+    background: linear-gradient(135deg, rgba(12, 12, 12, 0.95) 0%, rgba(30, 30, 30, 0.9) 100%);
     backdrop-filter: blur(16px);
     padding: 1.25rem 0 0.75rem 0;
     position: sticky;
@@ -268,6 +268,32 @@ body {
     z-index: 1000;
     box-shadow: var(--shadow-soft);
     border-bottom: 1px solid var(--card-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.navbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(29, 185, 84, 0.1) 50%, 
+        transparent 100%
+    );
+    animation: navbarShine 8s infinite;
+}
+
+@keyframes navbarShine {
+    0%, 100% {
+        left: -100%;
+    }
+    50% {
+        left: 100%;
+    }
 }
 
 .nav-container {
