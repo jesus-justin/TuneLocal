@@ -2800,6 +2800,56 @@ audio {
     }
 }
 
+/* Image Blur-up Loading Transitions */
+.blur-load {
+    position: relative;
+    overflow: hidden;
+}
+
+.blur-load img {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.blur-load img.loaded {
+    opacity: 1;
+}
+
+.blur-load::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(29, 185, 84, 0.1), rgba(102, 126, 234, 0.1));
+    animation: pulse-bg 1.5s ease-in-out infinite;
+}
+
+.blur-load.loaded::before {
+    display: none;
+}
+
+@keyframes pulse-bg {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Image zoom on hover */
+.image-zoom {
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.image-zoom img {
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.image-zoom:hover img {
+    transform: scale(1.1);
+}
+
 /* Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
     * {
