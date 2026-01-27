@@ -437,6 +437,7 @@ body {
     margin: 0 auto;
     padding: 3rem 2rem;
     padding-top: 4rem;
+    padding-bottom: 8rem;
     min-height: calc(100vh - 200px);
 }
 
@@ -2458,7 +2459,7 @@ audio {
     background: var(--bg-light);
     text-align: center;
     padding: 2rem;
-    margin-top: 4rem;
+    margin-top: 8rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 1.1rem;
 }
