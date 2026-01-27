@@ -490,7 +490,8 @@ body {
 /* Hero Section */
 .hero {
     text-align: center;
-    padding: 2rem 0 4rem 0;
+    padding: 2rem 0 6rem 0;
+    margin-bottom: 3rem;
 }
 
 .hero-layout {
@@ -747,6 +748,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 2rem;
     margin-top: 4rem;
+    margin-bottom: 6rem;
 }
 
 .stat-card {
