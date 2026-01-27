@@ -491,8 +491,8 @@ body {
 /* Hero Section */
 .hero {
     text-align: center;
-    padding: 2rem 0 6rem 0;
-    margin-bottom: 3rem;
+    padding: 2rem 0 4.5rem 0;
+    margin-bottom: 2rem;
 }
 
 .hero-layout {
@@ -739,8 +739,8 @@ body {
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
-    position: relative;
-    margin-bottom: 6rem;
+    align-items: center;
+    margin-bottom: 2.5rem;
 }
 
 /* Stats Container */
@@ -2413,18 +2413,13 @@ audio {
 
 /* Music Visualizer */
 .visualizer {
-    position: absolute;
-    left: 50%;
-    bottom: -65px;
-    transform: translateX(-50%);
-    display: flex;
+    display: inline-flex;
     gap: 6px;
     align-items: flex-end;
-    height: 55px;
-    z-index: 5;
-    opacity: 0.7;
+    height: 52px;
+    opacity: 0.85;
     pointer-events: none;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
 }
 
 .bar {
