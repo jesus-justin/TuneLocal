@@ -77,10 +77,10 @@ async function handleLogout(event) {
     event.preventDefault();
     try {
         await fetch(`${AUTH_API}?action=logout`, { method: 'POST' });
-        window.location.href = 'login.html';
+        window.location.href = 'landing.html';
     } catch (error) {
         console.error('Logout error:', error);
-        window.location.href = 'login.html';
+        window.location.href = 'landing.html';
     }
 }
 
