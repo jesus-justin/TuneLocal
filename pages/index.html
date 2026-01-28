@@ -67,7 +67,7 @@
                 </a>
             </div>
             <div class="navbar-controls">
-                <button class="logout-button" id="logoutButton" title="Logout" onclick="handleLogout(event)">
+                <button class="logout-button" id="logoutButton" title="Logout" onclick="handleLogout(event)" tabindex="0">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
                 <button class="profile-button" id="profileButton" title="Profile" onclick="toggleProfileMenu()">
@@ -93,7 +93,7 @@
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 </div>
-                <div class="theme-toggle">
+                <div class="theme-toggle" tabindex="0" role="button" aria-label="Toggle color theme">
                     <i class="fas fa-moon"></i>
                 </div>
             </div>
