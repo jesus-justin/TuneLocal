@@ -1,12 +1,94 @@
 // MySQL API Configuration
 const API_BASE_URL = 'api/music.php';
+const AUTH_API = 'api/auth.php';
 let currentPlaylist = [];
 let currentTrackIndex = 0;
 let isShuffling = false;
 let isRepeating = false;
+let currentUser = null;
+
+// Authentication & Profile Functions
+async function checkAuthentication() {
+    try {
+        const response = await fetch(`${AUTH_API}?action=check`);
+        const data = await response.json();
+
+        if (data.authenticated) {
+            currentUser = data.user;
+            updateProfileUI();
+            setupProfileButton();
+        } else {
+            // Redirect to login if not authenticated
+            window.location.href = 'login.html';
+        }
+    } catch (error) {
+        console.error('Auth check error:', error);
+        window.location.href = 'login.html';
+    }
+}
+
+function updateProfileUI() {
+    if (!currentUser) return;
+
+    const initials = ((currentUser.firstName || '')[0] + (currentUser.lastName || '')[0]).toUpperCase() || currentUser.username[0].toUpperCase();
+    
+    // Update profile button avatar
+    const profileAvatarMini = document.getElementById('profileAvatarMini');
+    if (profileAvatarMini) {
+        profileAvatarMini.textContent = initials;
+    }
+
+    // Update profile dropdown
+    const profileDropdownAvatar = document.getElementById('profileDropdownAvatar');
+    const profileDropdownName = document.getElementById('profileDropdownName');
+    const profileDropdownUsername = document.getElementById('profileDropdownUsername');
+
+    if (profileDropdownAvatar) profileDropdownAvatar.textContent = initials;
+    if (profileDropdownName) profileDropdownName.textContent = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username;
+    if (profileDropdownUsername) profileDropdownUsername.textContent = `@${currentUser.username}`;
+}
+
+function setupProfileButton() {
+    const profileButton = document.getElementById('profileButton');
+    const profileDropdown = document.getElementById('profileDropdown');
+
+    if (profileButton) {
+        profileButton.addEventListener('click', toggleProfileMenu);
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (profileDropdown && profileButton && 
+            !profileDropdown.contains(event.target) && 
+            !profileButton.contains(event.target)) {
+            profileDropdown.classList.remove('active');
+        }
+    });
+}
+
+function toggleProfileMenu() {
+    const profileDropdown = document.getElementById('profileDropdown');
+    if (profileDropdown) {
+        profileDropdown.classList.toggle('active');
+    }
+}
+
+async function handleLogout(event) {
+    event.preventDefault();
+    try {
+        await fetch(`${AUTH_API}?action=logout`, { method: 'POST' });
+        window.location.href = 'login.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+        window.location.href = 'login.html';
+    }
+}
 
 // Navigation & Section Management
 document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication first
+    checkAuthentication();
+
     // Initialize
     loadSavedPlaylists();
     loadSavedSongs();

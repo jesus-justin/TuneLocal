@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuneLocal - Login & Register</title>
+    <meta name="description" content="TuneLocal: Stream Spotify and YouTube, manage offline music, save playlists.">
+    <meta name="theme-color" content="#1db954">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231db954'/%3E%3Ctext x='50' y='68' text-anchor='middle' font-size='64' font-family='Segoe UI Emoji'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1db954;
+            --secondary-color: #ff0050;
+            --bg-dark: #121212;
+            --bg-light: #1e1e1e;
+            --card-bg: #282828;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background Animation */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .wave {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(29, 185, 84, 0.1) 0%, transparent 70%);
+            animation: wave-animation 20s infinite linear;
+        }
+
+        .wave1 { top: -50%; left: -50%; animation-duration: 25s; }
+        .wave2 { 
+            top: -30%; 
+            left: -30%; 
+            background: radial-gradient(circle, rgba(255, 0, 80, 0.08) 0%, transparent 70%);
+            animation-duration: 30s;
+            animation-direction: reverse;
+        }
+        .wave3 { 
+            top: -40%; 
+            left: -40%; 
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.06) 0%, transparent 70%);
+            animation-duration: 35s;
+        }
+
+        @keyframes wave-animation {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(50px, 50px) rotate(360deg); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            padding: 2rem;
+            z-index: 10;
+        }
+
+        .auth-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .auth-left {
+            display: none;
+        }
+
+        .auth-left.show {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .auth-hero {
+            font-size: 4rem;
+            line-height: 1.2;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .auth-form-container {
+            background: rgba(40, 40, 40, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-tab {
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .auth-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 0.85rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn-primary {
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1ed760 100%);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(29, 185, 84, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .form-message {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .form-message.error {
+            background: rgba(255, 0, 80, 0.2);
+            color: #ff6b9d;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-message.success {
+            background: rgba(29, 185, 84, 0.2);
+            color: #1db954;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .auth-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .auth-form-container {
+                padding: 2rem;
+            }
+
+            .auth-hero {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="wave wave1"></div>
+        <div class="wave wave2"></div>
+        <div class="wave wave3"></div>
+    </div>
+
+    <div class="container">
+        <div class="auth-wrapper">
+            <!-- Left Side -->
+            <div class="auth-left show">
+                <div class="auth-hero">
+                    🎵 TuneLocal
+                </div>
+                <div class="auth-subtitle">
+                    Your personal music streaming hub. Stream from Spotify, YouTube, manage offline music, and create custom playlists - all in one place.
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;">∞</div>
+                        <div style="font-size: 0.95rem; color: var(--text-secondary);">Unlimited Music</div>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;">📱</div>
+                        <div style="font-size: 0.95rem; color: var(--text-secondary);">Multiple Sources</div>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;">🔒</div>
+                        <div style="font-size: 0.95rem; color: var(--text-secondary);">Secure & Private</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Forms -->
+            <div class="auth-form-container">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchTab('login')">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <button class="auth-tab" onclick="switchTab('register')">
+                        <i class="fas fa-user-plus"></i> Register
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+                    <div class="form-message" id="loginMessage"></div>
+
+                    <div class="form-group">
+                        <label for="loginUsername">Username or Email</label>
+                        <input 
+                            type="text" 
+                            id="loginUsername" 
+                            placeholder="Enter your username or email"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input 
+                            type="password" 
+                            id="loginPassword" 
+                            placeholder="Enter your password"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
+                    <div class="form-message" id="registerMessage"></div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="regFirstName">First Name</label>
+                            <input 
+                                type="text" 
+                                id="regFirstName" 
+                                placeholder="John"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="regLastName">Last Name</label>
+                            <input 
+                                type="text" 
+                                id="regLastName" 
+                                placeholder="Doe"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regUsername">Username</label>
+                        <input 
+                            type="text" 
+                            id="regUsername" 
+                            placeholder="Choose a username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regEmail">Email</label>
+                        <input 
+                            type="email" 
+                            id="regEmail" 
+                            placeholder="your@email.com"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input 
+                            type="password" 
+                            id="regPassword" 
+                            placeholder="At least 6 characters"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regConfirmPassword">Confirm Password</label>
+                        <input 
+                            type="password" 
+                            id="regConfirmPassword" 
+                            placeholder="Confirm your password"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'api/auth.php';
+
+        function switchTab(tab) {
+            // Update tabs
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+
+            if (tab === 'login') {
+                document.querySelector('[onclick="switchTab(\'login\')"]').classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.querySelector('[onclick="switchTab(\'register\')"]').classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+            }
+
+            // Clear messages
+            document.getElementById('loginMessage').textContent = '';
+            document.getElementById('registerMessage').textContent = '';
+        }
+
+        function showMessage(formId, message, type) {
+            const messageEl = document.getElementById(formId + 'Message');
+            messageEl.textContent = message;
+            messageEl.className = `form-message ${type}`;
+            messageEl.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
+                ${message}
+            `;
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const form = event.target;
+
+            form.classList.add('loading');
+
+            try {
+                const response = await fetch(`${API_BASE}?action=login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('login', 'Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    showMessage('login', data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showMessage('login', 'Network error. Please try again.', 'error');
+            }
+
+            form.classList.remove('loading');
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const firstName = document.getElementById('regFirstName').value;
+            const lastName = document.getElementById('regLastName').value;
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const form = event.target;
+
+            form.classList.add('loading');
+
+            try {
+                const response = await fetch(`${API_BASE}?action=register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        firstName,
+                        lastName,
+                        username,
+                        email,
+                        password,
+                        confirmPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('register', 'Account created! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    showMessage('register', data.error || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showMessage('register', 'Network error. Please try again.', 'error');
+            }
+
+            form.classList.remove('loading');
+        }
+
+        // Check if already logged in
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE}?action=check`);
+                const data = await response.json();
+                if (data.authenticated) {
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

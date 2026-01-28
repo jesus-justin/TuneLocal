@@ -5,6 +5,46 @@
 CREATE DATABASE IF NOT EXISTS `tunelocal` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `tunelocal`;
 
+-- Table structure for users
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) NOT NULL UNIQUE,
+  `email` varchar(255) NOT NULL UNIQUE,
+  `password` varchar(255) NOT NULL,
+  `first_name` varchar(100) DEFAULT NULL,
+  `last_name` varchar(100) DEFAULT NULL,
+  `avatar_url` varchar(500) DEFAULT NULL,
+  `bio` text DEFAULT NULL,
+  `favorite_genre` varchar(100) DEFAULT NULL,
+  `country` varchar(100) DEFAULT NULL,
+  `theme` varchar(20) DEFAULT 'dark',
+  `language` varchar(10) DEFAULT 'en',
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `last_login` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_username` (`username`),
+  KEY `idx_email` (`email`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table structure for user sessions
+CREATE TABLE IF NOT EXISTS `user_sessions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `session_token` varchar(255) NOT NULL UNIQUE,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_session_token` (`session_token`),
+  KEY `idx_expires_at` (`expires_at`),
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Table structure for music library
 CREATE TABLE IF NOT EXISTS `music_library` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

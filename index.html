@@ -65,8 +65,33 @@
                     <i class="fas fa-list-ul"></i> Playlists
                 </a>
             </div>
-            <div class="theme-toggle">
-                <i class="fas fa-moon"></i>
+            <div class="navbar-controls">
+                <button class="profile-button" id="profileButton" title="Profile" onclick="toggleProfileMenu()">
+                    <div class="profile-avatar-mini" id="profileAvatarMini">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </button>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="profile-dropdown-header">
+                        <div class="profile-dropdown-avatar" id="profileDropdownAvatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="profile-dropdown-info">
+                            <div class="profile-dropdown-name" id="profileDropdownName">Loading...</div>
+                            <div class="profile-dropdown-username" id="profileDropdownUsername">@username</div>
+                        </div>
+                    </div>
+                    <div class="profile-dropdown-divider"></div>
+                    <a href="profile.html" class="profile-dropdown-item">
+                        <i class="fas fa-user-circle"></i> View Profile
+                    </a>
+                    <a href="#" onclick="handleLogout(event)" class="profile-dropdown-item logout">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+                <div class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </div>
             </div>
         </div>
         <div class="nav-quick-strip" aria-label="Quick navigation">
