@@ -644,7 +644,7 @@ body {
 }
 
 .nav-quick-strip {
-    display: flex;
+    display: none;
     flex-direction: row;
     max-width: 100%;
     margin: 0;
