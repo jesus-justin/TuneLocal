@@ -462,7 +462,7 @@
     </div>
 
     <script>
-        const API_BASE = 'api/auth.php';
+        const API_BASE = '../api/auth.php';
 
         async function loadProfile() {
             try {
@@ -470,7 +470,7 @@
                 const data = await response.json();
 
                 if (!data.authenticated) {
-                    window.location.href = 'login.html';
+                    window.location.href = './login.html';
                     return;
                 }
 
@@ -638,10 +638,10 @@
         async function handleLogout() {
             try {
                 await fetch(`${API_BASE}?action=logout`, { method: 'POST' });
-                window.location.href = 'login.html';
+                window.location.href = './landing.html';
             } catch (error) {
                 console.error('Logout error:', error);
-                window.location.href = 'login.html';
+                window.location.href = './landing.html';
             }
         }
 
