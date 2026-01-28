@@ -341,12 +341,70 @@ body {
     background-clip: text;
     flex-shrink: 0;
     margin-right: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    animation: logoHover 3s ease-in-out infinite;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
 }
 
 .logo i {
     font-size: 3rem;
     color: var(--primary-color);
-    animation: pulse 2s infinite;
+    animation: musicIconBounce 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    display: inline-block;
+    text-shadow: 0 0 20px rgba(29, 185, 84, 0.5);
+    filter: drop-shadow(0 0 10px rgba(29, 185, 84, 0.3));
+}
+
+.logo span {
+    animation: textShimmer 3s ease-in-out infinite;
+    background: linear-gradient(90deg, var(--primary-color), #00ff88, var(--primary-color));
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@keyframes musicIconBounce {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+        filter: drop-shadow(0 0 10px rgba(29, 185, 84, 0.3));
+    }
+    25% {
+        transform: translateY(-8px) scale(1.1);
+        filter: drop-shadow(0 0 20px rgba(29, 185, 84, 0.6));
+    }
+    50% {
+        transform: translateY(0) scale(1);
+        filter: drop-shadow(0 0 10px rgba(29, 185, 84, 0.3));
+    }
+    75% {
+        transform: translateY(-5px) scale(1.05);
+        filter: drop-shadow(0 0 15px rgba(29, 185, 84, 0.4));
+    }
+}
+
+@keyframes textShimmer {
+    0%, 100% {
+        background-position: 0% center;
+    }
+    50% {
+        background-position: 100% center;
+    }
+}
+
+@keyframes logoHover {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
 }
 
 @keyframes pulse {
@@ -363,10 +421,6 @@ body {
     gap: 0.8rem;
     flex-shrink: 0;
     white-space: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    max-width: 100%;
 }
 
 .nav-link {
@@ -387,10 +441,6 @@ body {
 
 .nav-link i {
     font-size: 1.5rem;
-}
-
-.nav-links::-webkit-scrollbar {
-    display: none;
 }
 
 .nav-link::before {
@@ -652,7 +702,7 @@ body {
 }
 
 .nav-quick-strip {
-    display: flex;
+    display: none;
     flex-direction: row;
     max-width: 100%;
     margin: 0;
