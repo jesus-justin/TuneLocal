@@ -301,32 +301,10 @@ body {
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
     gap: 1.5rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) rgba(255, 255, 255, 0.1);
-}
-
-/* Custom scrollbar for webkit browsers */
-.nav-container::-webkit-scrollbar {
-    height: 6px;
-}
-
-.nav-container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-}
-
-.nav-container::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 10px;
-}
-
-.nav-container::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-electric);
+    height: auto;
 }
 
 .logo {
@@ -359,7 +337,7 @@ body {
 }
 
 .nav-links {
-    display: flex;
+    display: none;
     gap: 0.8rem;
     flex-shrink: 0;
     white-space: nowrap;
