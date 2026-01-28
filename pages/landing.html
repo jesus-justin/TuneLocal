@@ -582,7 +582,7 @@
     <!-- Header -->
     <header>
         <div class="nav-wrapper">
-            <a href="landing.html" class="logo">
+            <a href="./landing.html" class="logo">
                 <i class="fas fa-music"></i>
                 <span>TuneLocal</span>
             </a>
@@ -592,8 +592,8 @@
                 <a href="#pricing">About</a>
             </nav>
             <div class="auth-buttons">
-                <a href="login.html" class="btn btn-secondary">Login</a>
-                <a href="login.html" class="btn btn-primary">Get Started</a>
+                <a href="./login.html" class="btn btn-secondary">Login</a>
+                <a href="./login.html" class="btn btn-primary">Get Started</a>
             </div>
         </div>
     </header>
@@ -607,7 +607,7 @@
                 Stream from Spotify and YouTube, manage your offline music library, save playlists, and discover new artists all in one beautiful, fast, and intuitive platform.
             </p>
             <div class="hero-buttons">
-                <a href="login.html" class="btn btn-primary">
+                <a href="./login.html" class="btn btn-primary">
                     <i class="fas fa-play"></i> Start Listening
                 </a>
                 <a href="#features" class="btn btn-secondary">
@@ -728,7 +728,7 @@
     <section class="cta">
         <h2>Ready to Transform Your Music Experience?</h2>
         <p>Join thousands of music lovers discovering, streaming, and enjoying music their way.</p>
-        <a href="login.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2.5rem;">
+        <a href="./login.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2.5rem;">
             <i class="fas fa-rocket"></i> Start Your Journey
         </a>
     </section>
@@ -746,7 +746,7 @@
                     <ul>
                         <li><a href="#features">Features</a></li>
                         <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="login.html">Get Started</a></li>
+                        <li><a href="./login.html">Get Started</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -776,12 +776,12 @@
         // Check if user is already authenticated
         async function checkAuthStatus() {
             try {
-                const response = await fetch('api/auth.php?action=check');
+                const response = await fetch('../api/auth.php?action=check');
                 const data = await response.json();
                 
                 if (data.authenticated) {
                     // Redirect to main app
-                    window.location.href = 'index.html';
+                    window.location.href = './index.html';
                 }
             } catch (error) {
                 console.log('Not authenticated');
