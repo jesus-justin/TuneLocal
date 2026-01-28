@@ -3222,3 +3222,88 @@ audio {
     }
     .visualizer { display: none; }
 }
+/* SweetAlert2 Custom Styling */
+.swal-dark-bg {
+    background: rgba(40, 40, 40, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.swal-dark-title {
+    color: var(--text-primary) !important;
+    font-size: 1.8rem !important;
+}
+
+.swal-dark-content {
+    color: var(--text-secondary) !important;
+    font-size: 1rem !important;
+}
+
+.swal2-popup {
+    border-radius: 20px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+.swal2-confirm {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1ed760 100%) !important;
+    color: #000 !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+}
+
+.swal2-confirm:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 16px rgba(29, 185, 84, 0.3) !important;
+}
+
+.swal2-cancel {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 10px !important;
+}
+
+.swal2-cancel:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.swal2-icon {
+    border-color: var(--primary-color) !important;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: #ff9800 !important;
+}
+
+.swal2-icon.swal2-warning .swal2-icon-content {
+    color: #ff9800 !important;
+}
+
+.swal2-icon.swal2-success {
+    border-color: var(--primary-color) !important;
+}
+
+.swal2-icon.swal2-success .swal2-icon-content {
+    color: var(--primary-color) !important;
+}
+
+.swal2-icon.swal2-error {
+    border-color: var(--secondary-color) !important;
+}
+
+.swal2-icon.swal2-error .swal2-icon-content {
+    color: var(--secondary-color) !important;
+}
+
+.swal2-progress-steps {
+    color: var(--primary-color) !important;
+}
+
+.swal2-progress-steps .swal2-progress-step {
+    background: rgba(29, 185, 84, 0.2) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.swal2-progress-steps .swal2-progress-step.active {
+    background: var(--primary-color) !important;
+}

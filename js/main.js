@@ -75,12 +75,65 @@ function toggleProfileMenu() {
 
 async function handleLogout(event) {
     event.preventDefault();
+    
+    // Show SweetAlert2 confirmation dialog
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'You will be logged out from TuneLocal',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#1db954',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, logout',
+        cancelButtonText: 'Cancel',
+        background: '#282828',
+        color: '#ffffff',
+        customClass: {
+            popup: 'swal-dark-bg',
+            title: 'swal-dark-title',
+            content: 'swal-dark-content'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with logout
+            performLogout();
+        }
+    });
+}
+
+async function performLogout() {
     try {
         await fetch(`${AUTH_API}?action=logout`, { method: 'POST' });
-        window.location.href = 'landing.html';
+        
+        // Show success message before redirecting
+        Swal.fire({
+            title: 'Logged Out',
+            text: 'You have been successfully logged out',
+            icon: 'success',
+            confirmButtonColor: '#1db954',
+            background: '#282828',
+            color: '#ffffff',
+            timer: 1500,
+            timerProgressBar: true
+        }).then(() => {
+            window.location.href = './landing.html';
+        });
     } catch (error) {
         console.error('Logout error:', error);
-        window.location.href = 'landing.html';
+        
+        // Show error message
+        Swal.fire({
+            title: 'Error',
+            text: 'Failed to logout. Redirecting...',
+            icon: 'error',
+            confirmButtonColor: '#1db954',
+            background: '#282828',
+            color: '#ffffff',
+            timer: 1500,
+            timerProgressBar: true
+        }).then(() => {
+            window.location.href = './landing.html';
+        });
     }
 }
 
