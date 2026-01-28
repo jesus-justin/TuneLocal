@@ -154,6 +154,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const savedTheme = preferencesManager?.get('theme', 'dark');
         applyTheme(savedTheme);
     } catch {}
+
+    // Setup theme toggle
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (themeToggle) {
+        themeToggle.setAttribute('role', 'button');
+        themeToggle.setAttribute('aria-label', 'Toggle theme');
+        themeToggle.setAttribute('tabindex', '0');
+        themeToggle.style.cursor = 'pointer';
+        
+        themeToggle.addEventListener('click', function() {
+            const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+            applyTheme(nextTheme);
+        });
+        
+        themeToggle.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+                applyTheme(nextTheme);
+            }
+        });
+    }
     
     // Smooth scroll for navigation
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -190,23 +212,6 @@ function showSection(sectionId) {
         }
     });
 }
-
-// Theme Toggle
-const themeToggle = document.querySelector('.theme-toggle');
-themeToggle.setAttribute('role', 'button');
-themeToggle.setAttribute('aria-label', 'Toggle theme');
-themeToggle.setAttribute('tabindex', '0');
-themeToggle.addEventListener('click', function() {
-    const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
-    applyTheme(nextTheme);
-});
-themeToggle.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
-        applyTheme(nextTheme);
-    }
-});
 
 function applyTheme(theme) {
     const isLight = theme === 'light';
