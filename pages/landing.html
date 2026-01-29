@@ -559,11 +559,24 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
             margin-top: 3rem;
+            position: relative;
+        }
+
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 45px;
+            left: 5%;
+            right: 5%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(29, 185, 84, 0.5), transparent);
+            opacity: 0.6;
         }
 
         .step {
             text-align: center;
             position: relative;
+            z-index: 1;
         }
 
         .step-number {
