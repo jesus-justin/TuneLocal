@@ -649,6 +649,18 @@
             background: var(--bg-light);
             padding: 3rem 2rem;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(29, 185, 84, 0.6), rgba(124, 245, 255, 0.6), transparent);
         }
 
         .footer-wrapper {
@@ -679,10 +691,27 @@
             transition: var(--transition);
             display: block;
             margin-bottom: 0.7rem;
+            position: relative;
+            width: fit-content;
+        }
+
+        .footer-section a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: var(--transition);
         }
 
         .footer-section a:hover {
             color: var(--primary-color);
+        }
+
+        .footer-section a:hover::after {
+            width: 100%;
         }
 
         .footer-bottom {
