@@ -155,12 +155,34 @@
             font-weight: 700;
             text-decoration: none;
             color: var(--text-primary);
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .logo:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
         }
 
         .logo i {
             font-size: 2rem;
             color: var(--primary-color);
             animation: pulse 2s infinite;
+            text-shadow: 0 0 20px rgba(29, 185, 84, 0.45);
+        }
+
+        .logo span {
+            background: linear-gradient(90deg, #ffffff, #9af6c3, #ffffff);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: logoShimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes logoShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         @keyframes pulse {
