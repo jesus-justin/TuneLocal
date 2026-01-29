@@ -119,6 +119,23 @@
             z-index: 1000;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent, rgba(29, 185, 84, 0.08), transparent);
+            opacity: 0.6;
+            transform: translateX(-100%);
+            animation: headerSheen 8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes headerSheen {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(120%); }
         }
 
         .nav-wrapper {
