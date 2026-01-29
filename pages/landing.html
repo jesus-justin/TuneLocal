@@ -471,6 +471,20 @@
             font-size: 3.5rem;
             color: var(--primary-color);
             margin-bottom: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(29, 185, 84, 0.2), rgba(29, 185, 84, 0.05));
+            box-shadow: 0 0 30px rgba(29, 185, 84, 0.25);
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(29, 185, 84, 0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(29, 185, 84, 0.35); }
         }
 
         .feature-card h3 {
