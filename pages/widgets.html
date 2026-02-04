@@ -46,6 +46,27 @@
     </nav>
 
     <main id="main" class="main-container" role="main">
+        <!-- Floating Action Button -->
+        <div class="fab-container">
+            <button class="fab-button" id="fabButton" aria-label="Quick Actions">
+                <i class="fas fa-bolt"></i>
+            </button>
+            <div class="fab-menu" id="fabMenu">
+                <button class="fab-action" onclick="showSection('spotify')" title="Open Spotify">
+                    <i class="fab fa-spotify"></i>
+                </button>
+                <button class="fab-action" onclick="showSection('youtube')" title="Open YouTube">
+                    <i class="fab fa-youtube"></i>
+                </button>
+                <button class="fab-action" onclick="showSection('offline-music')" title="Offline Music">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="fab-action" onclick="showSection('playlists')" title="Playlists">
+                    <i class="fas fa-list-ul"></i>
+                </button>
+            </div>
+        </div>
+
         <section class="section active">
             <div class="section-masthead">
                 <div class="masthead-left">
@@ -104,6 +125,7 @@
     <script src="../js/floating-mini-player.js"></script>
 
     <script src="../js/widget-layout-manager.js"></script>
+    <script src="js/fab-menu.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
     <script src="../js/main.js"></script>
