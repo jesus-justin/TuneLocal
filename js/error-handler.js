@@ -1,6 +1,7 @@
 /**
  * TuneLocal - Global Error Handler
  * Manages application-wide error logging and user feedback
+ * Version 1.0.1 - Enhanced error tracking
  */
 
 class ErrorHandler {
