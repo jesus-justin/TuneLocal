@@ -1,6 +1,7 @@
 /**
  * TuneLocal Share Feature
  * Share songs, playlists, and profiles
+ * Version 1.0.1 - Enhanced sharing capabilities
  */
 
 class ShareManager {
