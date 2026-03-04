@@ -1,6 +1,7 @@
 /**
  * TuneLocal Notification System
  * Toast notifications and alerts
+ * Version 1.0.1 - Enhanced notification features
  */
 
 class NotificationSystem {
