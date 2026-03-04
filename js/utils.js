@@ -1,6 +1,7 @@
 /**
  * TuneLocal - Utility Functions
  * Common utilities for the application
+ * Version 1.0.1 - Updated utility functions
  */
 
 /**
