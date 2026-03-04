@@ -367,15 +367,207 @@ class AdvancedDiscover {
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.performWebSearch();
             });
+
+            // Real-time suggestions as user types
+            searchInput.addEventListener('input', (e) => {
+                this.showSearchSuggestions(e.target.value);
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (e.target !== searchInput && e.target.closest('.search-suggestions') === null) {
+                    const suggestions = document.querySelector('.search-suggestions');
+                    if (suggestions) suggestions.style.display = 'none';
+                }
+            });
         }
 
         // Trending tag clicks
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('trending-tag')) {
-                searchInput.value = e.target.textContent;
+                if (searchInput) {
+                    searchInput.value = e.target.textContent;
+                }
                 this.performWebSearch();
             }
         });
+
+        // Setup related searches section
+        this.setupRelatedSearches();
+    }
+
+    showSearchSuggestions(query) {
+        if (!query || query.length < 1) {
+            const existing = document.querySelector('.search-suggestions');
+            if (existing) existing.style.display = 'none';
+            return;
+        }
+
+        // Get suggestions from AI engine
+        const suggestions = aiSearchEngine.getSuggestions(query);
+        if (suggestions.length === 0) return;
+
+        // Create or update suggestions dropdown
+        let suggestionsBox = document.querySelector('.search-suggestions');
+        if (!suggestionsBox) {
+            suggestionsBox = document.createElement('div');
+            suggestionsBox.className = 'search-suggestions';
+            const searchInput = document.getElementById('discoverSearchInput');
+            if (searchInput) {
+                searchInput.parentElement.appendChild(suggestionsBox);
+            }
+            this.injectSuggestionsStyles();
+        }
+
+        suggestionsBox.innerHTML = suggestions.map(sugg => `
+            <div class="suggestion-item" onclick="
+                document.getElementById('discoverSearchInput').value = '${sugg.text}';
+                advancedDiscover.performWebSearch();
+                this.closest('.search-suggestions').style.display = 'none';
+            ">
+                <i class="${sugg.icon}"></i>
+                <span>${sugg.text}</span>
+                <small>${sugg.type}</small>
+            </div>
+        `).join('');
+
+        suggestionsBox.style.display = 'block';
+    }
+
+    setupRelatedSearches() {
+        const discoverSection = document.getElementById('discover');
+        if (!discoverSection) return;
+
+        let relatedSection = discoverSection.querySelector('.related-searches-section');
+        if (!relatedSection) {
+            relatedSection = document.createElement('div');
+            relatedSection.className = 'related-searches-section';
+            const container = discoverSection.querySelector('.discover-container');
+            if (container) {
+                container.appendChild(relatedSection);
+            }
+        }
+    }
+
+    updateRelatedSearches(query) {
+        const related = aiSearchEngine.getRelatedSearches(query);
+        const relatedSection = document.querySelector('.related-searches-section');
+        
+        if (!relatedSection || related.length === 0) return;
+
+        relatedSection.innerHTML = `
+            <h4 style="color: rgba(255, 255, 255, 0.8); margin-bottom: 12px;">
+                <i class="fas fa-link"></i> Related Searches
+            </h4>
+            <div class="related-search-tags">
+                ${related.map(tag => `
+                    <div class="related-tag" onclick="
+                        document.getElementById('discoverSearchInput').value = '${tag}';
+                        advancedDiscover.performWebSearch();
+                    ">${tag}</div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    injectSuggestionsStyles() {
+        if (document.getElementById('suggestionStyles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'suggestionStyles';
+        style.textContent = `
+            .search-suggestions {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(20, 20, 40, 0.95);
+                border: 1px solid rgba(29, 185, 84, 0.3);
+                border-top: none;
+                border-radius: 0 0 8px 8px;
+                max-height: 300px;
+                overflow-y: auto;
+                z-index: 1000;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(10px);
+            }
+
+            .suggestion-item {
+                padding: 12px 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                transition: all 0.2s ease;
+            }
+
+            .suggestion-item:hover {
+                background: rgba(29, 185, 84, 0.2);
+            }
+
+            .suggestion-item i {
+                color: rgba(29, 185, 84, 0.8);
+                font-size: 14px;
+            }
+
+            .suggestion-item span {
+                flex: 1;
+                color: white;
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .suggestion-item small {
+                background: rgba(29, 185, 84, 0.2);
+                padding: 2px 6px;
+                border-radius: 4px;
+                color: rgba(29, 185, 84, 0.9);
+                font-size: 10px;
+                text-transform: uppercase;
+            }
+
+            .related-searches-section {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px;
+                margin-top: 24px;
+                animation: slideUp 0.3s ease;
+            }
+
+            .related-search-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .related-tag {
+                padding: 6px 12px;
+                background: linear-gradient(135deg, rgba(100, 200, 255, 0.2), rgba(29, 185, 84, 0.1));
+                border: 1px solid rgba(29, 185, 84, 0.3);
+                border-radius: 16px;
+                color: rgba(255, 255, 255, 0.9);
+                cursor: pointer;
+                font-size: 12px;
+                transition: all 0.2s ease;
+            }
+
+            .related-tag:hover {
+                background: linear-gradient(135deg, rgba(100, 200, 255, 0.4), rgba(29, 185, 84, 0.3));
+                border-color: rgba(29, 185, 84, 0.6);
+            }
+
+            .search-input-discover {
+                position: relative;
+            }
+
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     performWebSearch() {
@@ -391,13 +583,24 @@ class AdvancedDiscover {
 
         console.log(`Searching for "${query}" in ${source}`);
 
+        // Use AI search engine for smarter results
+        const aiResults = aiSearchEngine.search(query);
+        console.log('AI Search Results:', aiResults);
+
         // Save to search history
         this.addToSearchHistory(query);
 
-        // Perform search based on source
+        // Update related searches
+        this.updateRelatedSearches(query);
+
+        // Convert AI results to displayable format and generate music results
         if (source === 'all') {
-            this.searchYouTube(query);
-            // In a real app, could combine multiple sources
+            // If AI found good results, use those; otherwise do web search
+            if (aiResults.length > 0 && aiResults[0].relevanceScore > 60) {
+                this.displayAIBasedResults(aiResults, query);
+            } else {
+                this.searchYouTube(query);
+            }
         } else if (source === 'youtube') {
             this.searchYouTube(query);
         } else if (source === 'spotify') {
@@ -407,6 +610,49 @@ class AdvancedDiscover {
         } else if (source === 'web') {
             this.searchWeb(query);
         }
+    }
+
+    displayAIBasedResults(aiResults, query) {
+        // Generate smart music results based on AI understanding
+        const results = [];
+
+        aiResults.slice(0, 8).forEach((aiResult, index) => {
+            results.push({
+                id: `ai_${aiResult.type}_${index}`,
+                title: aiResult.type === 'song' ? aiResult.term : 
+                       aiResult.type === 'artist' ? `${aiResult.term} Top Tracks` :
+                       aiResult.type === 'genre' ? `${this.capitalize(aiResult.term)} Mix` :
+                       aiResult.type === 'playlist' ? aiResult.term :
+                       `${this.capitalize(aiResult.term)} Collection`,
+                artist: aiResult.artist || aiResult.category || 'Multiple Artists',
+                source: 'Smart AI Search',
+                duration: `${2 + index}:${(30 * index) % 60}`,
+                views: `${(Math.random() * 900 + 100).toFixed(0)}K`,
+                icon: aiSearchEngine.getTypeIcon(aiResult.type),
+                color: this.getColorForType(aiResult.type),
+                url: `https://youtube.com/watch?v=ai_${index}`,
+                type: 'ai',
+                aiMetadata: aiResult,
+                relevanceScore: aiResult.relevanceScore
+            });
+        });
+
+        this.displaySearchResults(results, 'AI Search');
+    }
+
+    capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    getColorForType(type) {
+        const colors = {
+            'artist': 'linear-gradient(135deg, #667eea, #764ba2)',
+            'song': 'linear-gradient(135deg, #f093fb, #f5576c)',
+            'genre': 'linear-gradient(135deg, #4facfe, #00f2fe)',
+            'mood': 'linear-gradient(135deg, #43e97b, #38f9d7)',
+            'playlist': 'linear-gradient(135deg, #fa709a, #fee140)'
+        };
+        return colors[type] || 'linear-gradient(135deg, #667eea, #764ba2)';
     }
 
     searchYouTube(query) {
@@ -502,25 +748,37 @@ class AdvancedDiscover {
         console.log(`Displaying ${results.length} ${source} results`);
 
         grid.innerHTML = results.map(song => {
-            const colors = [
-                'linear-gradient(135deg, #ff0000, #ff6b6b)',
-                'linear-gradient(135deg, #667eea, #764ba2)',
-                'linear-gradient(135deg, #f093fb, #f5576c)',
-                'linear-gradient(135deg, #4facfe, #00f2fe)',
-                'linear-gradient(135deg, #43e97b, #38f9d7)',
-                'linear-gradient(135deg, #fa709a, #fee140)',
-                'linear-gradient(135deg, #30cfd0, #330867)',
-                'linear-gradient(135deg, #a8edea, #fed6e3)'
-            ];
-            const color = colors[Math.floor(Math.random() * colors.length)];
+            // Use pre-defined color if available, otherwise generate random
+            let bgColor = song.color;
+            if (!bgColor) {
+                const colors = [
+                    'linear-gradient(135deg, #ff0000, #ff6b6b)',
+                    'linear-gradient(135deg, #667eea, #764ba2)',
+                    'linear-gradient(135deg, #f093fb, #f5576c)',
+                    'linear-gradient(135deg, #4facfe, #00f2fe)',
+                    'linear-gradient(135deg, #43e97b, #38f9d7)',
+                    'linear-gradient(135deg, #fa709a, #fee140)',
+                    'linear-gradient(135deg, #30cfd0, #330867)',
+                    'linear-gradient(135deg, #a8edea, #fed6e3)'
+                ];
+                bgColor = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            // Add relevance badge if available
+            const relevanceBadge = song.relevanceScore ? `
+                <div class="relevance-badge" title="Match confidence">
+                    <i class="fas fa-bolt"></i> ${song.relevanceScore}%
+                </div>
+            ` : '';
 
             return `
                 <div class="discover-card-enhanced">
-                    <div class="card-artwork" style="background: ${color};">
+                    <div class="card-artwork" style="background: ${bgColor};">
                         <i class="${song.icon}" style="font-size: 50px;"></i>
                         <div class="card-play-overlay">
                             <i class="fas fa-play"></i>
                         </div>
+                        ${relevanceBadge}
                     </div>
                     <div class="card-content">
                         <div class="card-title">${song.title}</div>
@@ -543,6 +801,33 @@ class AdvancedDiscover {
         }).join('');
 
         this.discoveries = results;
+
+        // Add styles for relevance badge
+        if (!document.getElementById('relevanceBadgeStyles')) {
+            const style = document.createElement('style');
+            style.id = 'relevanceBadgeStyles';
+            style.textContent = `
+                .relevance-badge {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(255, 165, 0, 0.9));
+                    color: #1a1a1a;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+
+                .relevance-badge i {
+                    font-size: 10px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
     }
 
     playSong(id, title, url) {
