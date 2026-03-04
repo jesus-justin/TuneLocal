@@ -1,6 +1,7 @@
 /**
  * TuneLocal - User Preferences Manager
  * Manages user preferences and settings
+ * Version 1.0.1 - Enhanced preference management
  */
 
 class PreferencesManager {
