@@ -2,6 +2,7 @@
 /**
  * TuneLocal - API Logger
  * Logs API requests and responses for debugging
+ * Version 1.0.1 - Enhanced logging capabilities
  */
 
 class APILogger {
