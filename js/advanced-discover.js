@@ -403,9 +403,9 @@ class AdvancedDiscover {
             return;
         }
 
-        // Get suggestions from AI engine
-        const suggestions = aiSearchEngine.getSuggestions(query);
-        if (suggestions.length === 0) return;
+        // Get suggestions from Music Database (Real songs and artists)
+        const dbSuggestions = musicDatabase.getSuggestions(query);
+        if (dbSuggestions.length === 0) return;
 
         // Create or update suggestions dropdown
         let suggestionsBox = document.querySelector('.search-suggestions');
@@ -419,15 +419,16 @@ class AdvancedDiscover {
             this.injectSuggestionsStyles();
         }
 
-        suggestionsBox.innerHTML = suggestions.map(sugg => `
+        suggestionsBox.innerHTML = dbSuggestions.map((sugg, idx) => `
             <div class="suggestion-item" onclick="
-                document.getElementById('discoverSearchInput').value = '${sugg.text}';
+                document.getElementById('discoverSearchInput').value = '${sugg.replace(/'/g, "\\'")}';
                 advancedDiscover.performWebSearch();
                 this.closest('.search-suggestions').style.display = 'none';
             ">
-                <i class="${sugg.icon}"></i>
-                <span>${sugg.text}</span>
-                <small>${sugg.type}</small>
+                <i class="fas fa-music"></i>
+                <span>${sugg}</span>
+            </div>
+        `).join('');
             </div>
         `).join('');
 
@@ -450,21 +451,29 @@ class AdvancedDiscover {
     }
 
     updateRelatedSearches(query) {
-        const related = aiSearchEngine.getRelatedSearches(query);
-        const relatedSection = document.querySelector('.related-searches-section');
+        // Get related suggestions from Music Database
+        const related = musicDatabase.getSuggestions(query);
         
-        if (!relatedSection || related.length === 0) return;
+        // Also get trending songs as fallback
+        if (related.length === 0) {
+            return;
+        }
+
+        const relatedSection = document.querySelector('.related-searches-section');
+        if (!relatedSection) return;
 
         relatedSection.innerHTML = `
             <h4 style="color: rgba(255, 255, 255, 0.8); margin-bottom: 12px;">
-                <i class="fas fa-link"></i> Related Searches
+                <i class="fas fa-link"></i> Try These Related Searches
             </h4>
             <div class="related-search-tags">
-                ${related.map(tag => `
+                ${related.slice(0, 6).map(tag => `
                     <div class="related-tag" onclick="
-                        document.getElementById('discoverSearchInput').value = '${tag}';
+                        document.getElementById('discoverSearchInput').value = '${tag.replace(/'/g, "\\'")}';
                         advancedDiscover.performWebSearch();
-                    ">${tag}</div>
+                    ">
+                        <i class="fas fa-arrow-right"></i> ${tag}
+                    </div>
                 `).join('')}
             </div>
         `;
@@ -577,39 +586,28 @@ class AdvancedDiscover {
         const source = searchType ? searchType.value : 'all';
 
         if (!query) {
-            alert('Please enter a search query');
+            showNotification('Please enter a search term', 'warning');
             return;
         }
 
-        console.log(`Searching for "${query}" in ${source}`);
+        console.log(`🔍 Searching for "${query}" in ${source}`);
 
-        // Use AI search engine for smarter results
-        const aiResults = aiSearchEngine.search(query);
-        console.log('AI Search Results:', aiResults);
+        // Search using Music Database (Real Songs)
+        const dbResults = musicDatabase.search(query);
+        console.log(`✅ Found ${dbResults.length} songs in music database`);
 
         // Save to search history
         this.addToSearchHistory(query);
 
-        // Update related searches
-        this.updateRelatedSearches(query);
-
-        // Convert AI results to displayable format and generate music results
-        if (source === 'all') {
-            // If AI found good results, use those; otherwise do web search
-            if (aiResults.length > 0 && aiResults[0].relevanceScore > 60) {
-                this.displayAIBasedResults(aiResults, query);
-            } else {
-                this.searchYouTube(query);
-            }
-        } else if (source === 'youtube') {
-            this.searchYouTube(query);
-        } else if (source === 'spotify') {
-            this.searchSpotify(query);
-        } else if (source === 'soundcloud') {
-            this.searchSoundCloud(query);
-        } else if (source === 'web') {
-            this.searchWeb(query);
+        // Display database results (like YouTube - individual songs with artists)
+        if (dbResults.length > 0) {
+            this.displayMusicDatabaseResults(dbResults, query);
+        } else {
+            showNotification('No songs found. Try searching by artist name or song title.', 'info');
         }
+
+        // Show related searches
+        this.updateRelatedSearches(query);
     }
 
     displayAIBasedResults(aiResults, query) {
@@ -638,6 +636,112 @@ class AdvancedDiscover {
         });
 
         this.displaySearchResults(results, 'AI Search');
+    }
+
+    /**
+     * Display results from Music Database (Real songs like YouTube)
+     * Shows individual songs with artists, views, and duration
+     */
+    displayMusicDatabaseResults(dbResults, query) {
+        const grid = document.getElementById('discoverGrid');
+        if (!grid) {
+            console.error('❌ Discover grid not found');
+            return;
+        }
+
+        console.log(`📊 Displaying ${dbResults.length} database results for "${query}"`);
+
+        const colors = [
+            'linear-gradient(135deg, #667eea, #764ba2)',
+            'linear-gradient(135deg, #f093fb, #f5576c)',
+            'linear-gradient(135deg, #4facfe, #00f2fe)',
+            'linear-gradient(135deg, #43e97b, #38f9d7)',
+            'linear-gradient(135deg, #fa709a, #fee140)',
+            'linear-gradient(135deg, #30cfd0, #330867)',
+            'linear-gradient(135deg, #a8edea, #fed6e3)',
+            'linear-gradient(135deg, #ff9a56, #ff6a88)',
+        ];
+
+        grid.innerHTML = dbResults.map((song, index) => {
+            const bgColor = colors[index % colors.length];
+            const matchBadge = song.matchType ? `
+                <div class="match-badge" title="${song.matchType}">
+                    <i class="fas fa-check-circle"></i> ${song.matchType.charAt(0).toUpperCase() + song.matchType.slice(1)}
+                </div>
+            ` : '';
+
+            return `
+                <div class="discover-card-enhanced">
+                    <div class="card-artwork" style="background: ${bgColor};">
+                        <div class="song-icon-wrapper">
+                            <i class="fas fa-music" style="font-size: 45px; color: white;"></i>
+                        </div>
+                        <div class="card-play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        ${matchBadge}
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">${song.title}</div>
+                        <div class="card-artist">${song.artist}</div>
+                        <div class="card-meta">
+                            <div><i class="fas fa-eye"></i> ${song.views} views • ${song.duration}</div>
+                        </div>
+                        <span class="card-source-badge">YouTube</span>
+                        <div class="card-actions">
+                            <button class="card-action-btn" onclick="advancedDiscover.playSong('${song.url.replace(/'/g, "\\'")}', '${song.title.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-play"></i> Play
+                            </button>
+                            <button class="card-action-btn download" onclick="advancedDiscover.downloadSong('${song.url.replace(/'/g, "\\'")}', '${song.title.replace(/'/g, "\\'")} - ${song.artist.replace(/'/g, "\\'")}')" >
+                                <i class="fas fa-download"></i> Get
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        this.discoveries = dbResults;
+
+        // Add match badge styling
+        if (!document.getElementById('matchBadgeStyles')) {
+            const style = document.createElement('style');
+            style.id = 'matchBadgeStyles';
+            style.textContent = `
+                .match-badge {
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(56, 142, 60, 0.95));
+                    color: #fff;
+                    padding: 5px 10px;
+                    border-radius: 6px;
+                    font-size: 10px;
+                    font-weight: 700;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+
+                .match-badge i {
+                    font-size: 9px;
+                }
+
+                .song-icon-wrapper {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
+                    opacity: 0.9;
+                }
+
+                .card-meta i {
+                    margin-right: 4px;
+                    color: rgba(255, 255, 255, 0.6);
+                }
+            `;
+            document.head.appendChild(style);
+        }
     }
 
     capitalize(str) {
@@ -830,8 +934,9 @@ class AdvancedDiscover {
         }
     }
 
-    playSong(id, title, url) {
-        console.log(`Playing: ${title} from ${url}`);
+    playSong(url, title) {
+        console.log(`🎵 Playing: ${title}`);
+        console.log(`URL: ${url}`);
         this.showPlayerModal(title, url);
     }
 
@@ -845,32 +950,46 @@ class AdvancedDiscover {
             document.body.appendChild(modal);
         }
 
+        // Extract search query from URL for better YouTube integration
+        const searchQuery = this.extractSearchQuery(url);
+        const youtubePlayerUrl = searchQuery ? 
+            `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(searchQuery)}` :
+            `https://www.youtube.com/embed/${this.extractYouTubeId(url)}`;
+
         modal.innerHTML = `
             <div class="modal-overlay-discover" onclick="this.closest('.discover-play-modal').style.display='none'">
                 <div class="modal-discover-content" onclick="event.stopPropagation()">
                     <div class="modal-discover-header">
-                        <h3>${title}</h3>
+                        <h3>
+                            <i class="fas fa-music"></i> ${title}
+                        </h3>
                         <button class="close-btn" onclick="document.getElementById('discoverPlayModal').style.display='none'">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     <div class="modal-discover-body">
                         <div class="player-embed">
-                            <iframe width="100%" height="400" 
-                                src="https://www.youtube.com/embed/${this.extractYouTubeId(url)}" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen>
-                            </iframe>
+                            <div class="video-player-placeholder">
+                                <div class="video-player-content">
+                                    <i class="fas fa-youtube" style="font-size: 60px; margin-bottom: 20px;"></i>
+                                    <h4 style="margin: 0 0 10px 0;">${title}</h4>
+                                    <p style="margin: 0 0 20px 0; font-size: 12px; opacity: 0.7;">Click button below to open on YouTube</p>
+                                    <a href="${url.includes('youtube') ? url : 'https://www.youtube.com/results?search_query=' + encodeURIComponent(title)}" 
+                                       target="_blank" 
+                                       class="youtube-play-button">
+                                        <i class="fab fa-youtube"></i> Watch on YouTube
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                         <div class="player-info">
-                            <h4>${title}</h4>
-                            <p><small>Now Playing</small></p>
+                            <h4 style="margin-bottom: 10px;">${title}</h4>
+                            <p style="margin: 0 0 15px 0;"><small>Ready to play</small></p>
                             <div class="player-actions">
-                                <button class="play-action-btn" onclick="advancedDiscover.downloadSong('${title}', '${title}', '${url}', 'YouTube')">
+                                <button class="play-action-btn" onclick="advancedDiscover.downloadSong('${url.replace(/'/g, "\\'")}', '${title.replace(/'/g, "\\'")}', '${url.replace(/'/g, "\\'")}', 'YouTube')">
                                     <i class="fas fa-download"></i> Download to Offline
                                 </button>
-                                <button class="play-action-btn" onclick="advancedDiscover.addToPlaylist('${title}')">
+                                <button class="play-action-btn" onclick="advancedDiscover.addToPlaylist('${title.replace(/'/g, "\\'")}')" >
                                     <i class="fas fa-plus-circle"></i> Add to Playlist
                                 </button>
                             </div>
@@ -894,6 +1013,170 @@ class AdvancedDiscover {
                     height: 100%;
                     z-index: 2000;
                     align-items: center;
+                    justify-content: center;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(5px);
+                }
+
+                .modal-overlay-discover {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    cursor: pointer;
+                }
+
+                .modal-discover-content {
+                    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    max-width: 600px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    z-index: 2001;
+                    cursor: default;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .modal-discover-header {
+                    padding: 20px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .modal-discover-header h3 {
+                    margin: 0;
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .close-btn {
+                    background: none;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.7);
+                    font-size: 20px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .close-btn:hover {
+                    color: white;
+                    transform: scale(1.1);
+                }
+
+                .modal-discover-body {
+                    padding: 20px;
+                }
+
+                .player-embed {
+                    margin-bottom: 20px;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    background: rgba(0, 0, 0, 0.3);
+                }
+
+                .player-embed iframe {
+                    width: 100%;
+                    height: 350px;
+                }
+
+                .video-player-placeholder {
+                    width: 100%;
+                    height: 350px;
+                    background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(0, 0, 0, 0.3));
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .video-player-content {
+                    text-align: center;
+                    color: rgba(255, 255, 255, 0.8);
+                }
+
+                .youtube-play-button {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: linear-gradient(135deg, #ff0000, #c41e3a);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    transition: all 0.3s;
+                    border: none;
+                    cursor: pointer;
+                }
+
+                .youtube-play-button:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
+                }
+
+                .player-info {
+                    background: rgba(255, 255, 255, 0.05);
+                    padding: 15px;
+                    border-radius: 10px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .player-info h4 {
+                    color: white;
+                    margin: 0;
+                }
+
+                .player-info p {
+                    color: rgba(255, 255, 255, 0.6);
+                    margin: 5px 0 0 0;
+                }
+
+                .player-actions {
+                    display: flex;
+                    gap: 10px;
+                    margin-top: 15px;
+                }
+
+                .play-action-btn {
+                    flex: 1;
+                    padding: 10px;
+                    background: linear-gradient(135deg, rgba(29, 185, 84, 0.3), rgba(29, 185, 84, 0.1));
+                    border: 1px solid rgba(29, 185, 84, 0.5);
+                    border-radius: 6px;
+                    color: rgba(29, 185, 84, 0.9);
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: 600;
+                    transition: all 0.3s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                }
+
+                .play-action-btn:hover {
+                    background: linear-gradient(135deg, rgba(29, 185, 84, 0.5), rgba(29, 185, 84, 0.3));
+                    box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    extractSearchQuery(url) {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.searchParams.get('search_query') || '';
+        } catch (e) {
+            return '';
+        }
+    }
                     justify-content: center;
                 }
 
