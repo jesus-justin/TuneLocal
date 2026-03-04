@@ -1,6 +1,7 @@
 /**
  * TuneLocal Audio Equalizer
  * Multi-band equalizer with presets
+ * Version 1.0.1 - Enhanced equalizer features
  */
 
 class AudioEqualizer {
