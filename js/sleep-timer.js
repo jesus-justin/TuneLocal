@@ -1,6 +1,7 @@
 /**
  * TuneLocal Sleep Timer
  * Auto-pause music after specified duration
+ * Version 1.0.1 - Enhanced sleep timer features
  */
 
 class SleepTimer {
