@@ -1,6 +1,7 @@
 /**
  * TuneLocal - Keyboard Shortcuts Manager
  * Handles keyboard navigation and shortcuts
+ * Version 1.0.1 - Enhanced keyboard navigation
  */
 
 class KeyboardShortcuts {
