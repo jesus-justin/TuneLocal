@@ -384,15 +384,23 @@ class AdvancedDiscover {
         const query = searchInput ? searchInput.value.trim() : '';
         const source = searchType ? searchType.value : 'all';
 
-        if (!query) return;
+        if (!query) {
+            alert('Please enter a search query');
+            return;
+        }
+
+        console.log(`Searching for "${query}" in ${source}`);
 
         // Save to search history
         this.addToSearchHistory(query);
 
         // Perform search based on source
-        if (source === 'youtube' || source === 'all') {
+        if (source === 'all') {
             this.searchYouTube(query);
-        } else if (source === 'spotify' || source === 'all') {
+            // In a real app, could combine multiple sources
+        } else if (source === 'youtube') {
+            this.searchYouTube(query);
+        } else if (source === 'spotify') {
             this.searchSpotify(query);
         } else if (source === 'soundcloud') {
             this.searchSoundCloud(query);
@@ -486,41 +494,271 @@ class AdvancedDiscover {
 
     displaySearchResults(results, source) {
         const grid = document.getElementById('discoverGrid');
-        if (!grid) return;
+        if (!grid) {
+            console.error('Discover grid not found');
+            return;
+        }
 
-        grid.innerHTML = results.map(song => `
-            <div class="discover-card-enhanced">
-                <div class="card-artwork" style="background: ${song.color};">
-                    <i class="${song.icon}" style="font-size: 50px;"></i>
-                    <div class="card-play-overlay">
-                        <i class="fas fa-play"></i>
+        console.log(`Displaying ${results.length} ${source} results`);
+
+        grid.innerHTML = results.map(song => {
+            const colors = [
+                'linear-gradient(135deg, #ff0000, #ff6b6b)',
+                'linear-gradient(135deg, #667eea, #764ba2)',
+                'linear-gradient(135deg, #f093fb, #f5576c)',
+                'linear-gradient(135deg, #4facfe, #00f2fe)',
+                'linear-gradient(135deg, #43e97b, #38f9d7)',
+                'linear-gradient(135deg, #fa709a, #fee140)',
+                'linear-gradient(135deg, #30cfd0, #330867)',
+                'linear-gradient(135deg, #a8edea, #fed6e3)'
+            ];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            return `
+                <div class="discover-card-enhanced">
+                    <div class="card-artwork" style="background: ${color};">
+                        <i class="${song.icon}" style="font-size: 50px;"></i>
+                        <div class="card-play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">${song.title}</div>
+                        <div class="card-artist">${song.artist}</div>
+                        <div class="card-meta">
+                            <div>${song.duration} • ${song.views} views</div>
+                        </div>
+                        <span class="card-source-badge">${song.source}</span>
+                        <div class="card-actions">
+                            <button class="card-action-btn" onclick="advancedDiscover.playSong('${song.id}', '${song.title.replace(/'/g, "\\'")}', '${song.url}')">
+                                <i class="fas fa-play"></i> Play
+                            </button>
+                            <button class="card-action-btn download" onclick="advancedDiscover.downloadSong('${song.id}', '${song.title.replace(/'/g, "\\'")}', '${song.url}', '${song.type}')">
+                                <i class="fas fa-download"></i> Get
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="card-content">
-                    <div class="card-title">${song.title}</div>
-                    <div class="card-artist">${song.artist}</div>
-                    <div class="card-meta">
-                        <div>${song.duration} • ${song.views} views</div>
-                    </div>
-                    <span class="card-source-badge">${song.source}</span>
-                    <div class="card-actions">
-                        <button class="card-action-btn" onclick="advancedDiscover.playSong('${song.id}', '${song.title}', '${song.url}')">
-                            <i class="fas fa-play"></i> Play
-                        </button>
-                        <button class="card-action-btn download" onclick="advancedDiscover.downloadSong('${song.id}', '${song.title}', '${song.url}', '${song.type}')">
-                            <i class="fas fa-download"></i> Get
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         this.discoveries = results;
     }
 
     playSong(id, title, url) {
         console.log(`Playing: ${title} from ${url}`);
-        alert(`Now Playing: ${title}\n\nURL: ${url}`);
+        this.showPlayerModal(title, url);
+    }
+
+    showPlayerModal(title, url) {
+        // Create or update player modal
+        let modal = document.getElementById('discoverPlayModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'discoverPlayModal';
+            modal.className = 'discover-play-modal';
+            document.body.appendChild(modal);
+        }
+
+        modal.innerHTML = `
+            <div class="modal-overlay-discover" onclick="this.closest('.discover-play-modal').style.display='none'">
+                <div class="modal-discover-content" onclick="event.stopPropagation()">
+                    <div class="modal-discover-header">
+                        <h3>${title}</h3>
+                        <button class="close-btn" onclick="document.getElementById('discoverPlayModal').style.display='none'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-discover-body">
+                        <div class="player-embed">
+                            <iframe width="100%" height="400" 
+                                src="https://www.youtube.com/embed/${this.extractYouTubeId(url)}" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                        <div class="player-info">
+                            <h4>${title}</h4>
+                            <p><small>Now Playing</small></p>
+                            <div class="player-actions">
+                                <button class="play-action-btn" onclick="advancedDiscover.downloadSong('${title}', '${title}', '${url}', 'YouTube')">
+                                    <i class="fas fa-download"></i> Download to Offline
+                                </button>
+                                <button class="play-action-btn" onclick="advancedDiscover.addToPlaylist('${title}')">
+                                    <i class="fas fa-plus-circle"></i> Add to Playlist
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Inject modal styles if not already there
+        if (!document.getElementById('discoverPlayModalStyles')) {
+            const style = document.createElement('style');
+            style.id = 'discoverPlayModalStyles';
+            style.textContent = `
+                .discover-play-modal {
+                    display: flex;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 2000;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .modal-overlay-discover {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(10px);
+                }
+
+                .modal-discover-content {
+                    position: relative;
+                    background: linear-gradient(135deg, rgba(20, 20, 40, 0.98), rgba(30, 30, 60, 0.98));
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 16px;
+                    max-width: 800px;
+                    width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+                    animation: slideUp 0.3s ease;
+                }
+
+                @keyframes slideUp {
+                    from { transform: translateY(40px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+
+                .modal-discover-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 24px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .modal-discover-header h3 {
+                    margin: 0;
+                    color: white;
+                    font-size: 20px;
+                }
+
+                .close-btn {
+                    background: rgba(255, 255, 255, 0.1);
+                    border: none;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    color: white;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
+                }
+
+                .close-btn:hover {
+                    background: rgba(255, 255, 255, 0.15);
+                }
+
+                .modal-discover-body {
+                    padding: 24px;
+                }
+
+                .player-embed {
+                    margin-bottom: 24px;
+                    border-radius: 12px;
+                    overflow: hidden;
+                }
+
+                .player-embed iframe {
+                    border-radius: 12px;
+                }
+
+                .player-info {
+                    background: rgba(255, 255, 255, 0.08);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    padding: 16px;
+                }
+
+                .player-info h4 {
+                    margin: 0 0 8px 0;
+                    color: white;
+                    font-size: 16px;
+                }
+
+                .player-info p {
+                    margin: 0 0 16px 0;
+                    color: rgba(255, 255, 255, 0.6);
+                    font-size: 12px;
+                }
+
+                .player-actions {
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                }
+
+                .play-action-btn {
+                    flex: 1;
+                    min-width: 140px;
+                    padding: 10px 14px;
+                    background: linear-gradient(135deg, rgba(29, 185, 84, 0.3), rgba(29, 185, 84, 0.1));
+                    border: 1px solid rgba(29, 185, 84, 0.5);
+                    border-radius: 8px;
+                    color: white;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 13px;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                }
+
+                .play-action-btn:hover {
+                    background: linear-gradient(135deg, rgba(29, 185, 84, 0.5), rgba(29, 185, 84, 0.3));
+                    border-color: rgba(29, 185, 84, 0.7);
+                }
+
+                @media (max-width: 768px) {
+                    .modal-discover-content {
+                        width: 95%;
+                    }
+
+                    .player-embed iframe {
+                        height: 250px !important;
+                    }
+
+                    .player-actions {
+                        flex-direction: column;
+                    }
+
+                    .play-action-btn {
+                        min-width: auto;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    extractYouTubeId(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : '0';
     }
 
     downloadSong(id, title, url, source) {
@@ -529,10 +767,47 @@ class AdvancedDiscover {
         // Use the download manager if available
         if (typeof downloadManager !== 'undefined') {
             downloadManager.createDownloadItem(id, title, url);
-            alert(`Download queued: "${title}"\n\nCheck the Download Queue section to monitor progress.`);
+            
+            // Show success notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, rgba(100, 200, 255, 0.9), rgba(29, 185, 84, 0.9));
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                z-index: 2001;
+                animation: slideInRight 0.3s ease;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            `;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-check-circle" style="font-size: 20px;"></i>
+                    <div>
+                        <strong>Download Started!</strong><br>
+                        <small>"${title}" is queued</small>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 4000);
         } else {
-            alert(`Ready to download: ${title}\n\nSource: ${source}`);
+            console.warn('Download manager not available');
         }
+    }
+
+    addToPlaylist(title) {
+        let playlists = JSON.parse(localStorage.getItem('userPlaylists') || '[]');
+        playlists.push({
+            title: title,
+            addedAt: new Date().toLocaleString()
+        });
+        localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+        
+        alert(`Added "${title}" to your playlist!`);
     }
 
     populateTrending() {
@@ -571,64 +846,74 @@ class AdvancedDiscover {
             this.searchHistory = JSON.parse(saved);
         }
 
-        // Load default discoveries on init
-        this.loadDefaultDiscoveries();
+        // Load default discoveries on init - use small delay to ensure DOM is ready
+        setTimeout(() => this.loadDefaultDiscoveries(), 100);
     }
 
     loadDefaultDiscoveries() {
+        const grid = document.getElementById('discoverGrid');
+        if (!grid) {
+            console.warn('Discover grid not found, retrying...');
+            setTimeout(() => this.loadDefaultDiscoveries(), 500);
+            return;
+        }
+
+        if (grid.innerHTML.includes('discover-card-enhanced')) {
+            return; // Already loaded
+        }
+
+        console.log('Loading default discoveries...');
+
         const defaults = [
-            { title: 'Top 50 Lofi', artist: 'Spotify', source: 'Spotify', type: 'playlist', icon: 'fas fa-list-ul' },
-            { title: 'Synthwave Classics', artist: 'Music Hub', source: 'YouTube', type: 'video', icon: 'fab fa-youtube' },
-            { title: 'Ambient Meditation', artist: 'Relaxing Sounds', source: 'Spotify', type: 'playlist', icon: 'fas fa-spa' },
-            { title: 'Electronic Vibes', artist: 'EDM Daily', source: 'YouTube', type: 'video', icon: 'fas fa-drum' },
-            { title: 'Jazz Classics', artist: 'Jazz Masters', source: 'Web', type: 'web', icon: 'fas fa-saxophone' },
-            { title: 'K-Pop Hits 2024', artist: 'K-Pop Central', source: 'YouTube', type: 'video', icon: 'fas fa-microphone' },
-            { title: 'Chill Beats Mix', artist: 'Chill Music', source: 'Spotify', type: 'playlist', icon: 'fas fa-cloud' },
-            { title: 'Rock Anthems', artist: 'Rock Station', source: 'Web', type: 'web', icon: 'fas fa-guitar' }
+            { title: 'Top 50 Lofi', artist: 'Spotify', source: 'Spotify', icon: 'fas fa-list-ul' },
+            { title: 'Synthwave Classics', artist: 'Music Hub', source: 'YouTube', icon: 'fab fa-youtube' },
+            { title: 'Ambient Meditation', artist: 'Relaxing Sounds', source: 'Spotify', icon: 'fas fa-spa' },
+            { title: 'Electronic Vibes', artist: 'EDM Daily', source: 'YouTube', icon: 'fas fa-compact-disc' },
+            { title: 'Jazz Classics', artist: 'Jazz Masters', source: 'Web', icon: 'fas fa-saxophone' },
+            { title: 'K-Pop Hits 2024', artist: 'K-Pop Central', source: 'YouTube', icon: 'fas fa-microphone' },
+            { title: 'Chill Beats Mix', artist: 'Chill Music', source: 'Spotify', icon: 'fas fa-cloud' },
+            { title: 'Rock Anthems', artist: 'Rock Station', source: 'Web', icon: 'fas fa-guitar' }
         ];
 
-        const grid = document.getElementById('discoverGrid');
-        if (!grid || grid.innerHTML.includes('discover-card-enhanced')) return;
+        const colors = [
+            'linear-gradient(135deg, #667eea, #764ba2)',
+            'linear-gradient(135deg, #f093fb, #f5576c)',
+            'linear-gradient(135deg, #4facfe, #00f2fe)',
+            'linear-gradient(135deg, #43e97b, #38f9d7)',
+            'linear-gradient(135deg, #fa709a, #fee140)',
+            'linear-gradient(135deg, #30cfd0, #330867)',
+            'linear-gradient(135deg, #a8edea, #fed6e3)',
+            'linear-gradient(135deg, #ff9a56, #ff6a88)'
+        ];
 
-        grid.innerHTML = defaults.map((song, i) => {
-            const colors = [
-                'linear-gradient(135deg, #667eea, #764ba2)',
-                'linear-gradient(135deg, #f093fb, #f5576c)',
-                'linear-gradient(135deg, #4facfe, #00f2fe)',
-                'linear-gradient(135deg, #43e97b, #38f9d7)',
-                'linear-gradient(135deg, #fa709a, #fee140)',
-                'linear-gradient(135deg, #30cfd0, #330867)',
-                'linear-gradient(135deg, #a8edea, #fed6e3)',
-                'linear-gradient(135deg, #ff9a56, #ff6a88)'
-            ];
-
-            return `
-                <div class="discover-card-enhanced">
-                    <div class="card-artwork" style="background: ${colors[i % colors.length]};">
-                        <i class="${song.icon}" style="font-size: 50px;"></i>
-                        <div class="card-play-overlay">
-                            <i class="fas fa-play"></i>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-title">${song.title}</div>
-                        <div class="card-artist">${song.artist}</div>
-                        <div class="card-meta">
-                            <div>${['Playlist', 'Video', 'Mix'][Math.floor(Math.random() * 3)]} • ${Math.floor(Math.random() * 500) + 100}K</div>
-                        </div>
-                        <span class="card-source-badge">${song.source}</span>
-                        <div class="card-actions">
-                            <button class="card-action-btn" onclick="advancedDiscover.playSong('${i}', '${song.title}', '')">
-                                <i class="fas fa-play"></i> Play
-                            </button>
-                            <button class="card-action-btn download" onclick="advancedDiscover.downloadSong('default_${i}', '${song.title}', '', '${song.source}')">
-                                <i class="fas fa-download"></i> Get
-                            </button>
-                        </div>
+        grid.innerHTML = defaults.map((song, i) => `
+            <div class="discover-card-enhanced">
+                <div class="card-artwork" style="background: ${colors[i % colors.length]};">
+                    <i class="${song.icon}" style="font-size: 50px;"></i>
+                    <div class="card-play-overlay">
+                        <i class="fas fa-play"></i>
                     </div>
                 </div>
-            `;
-        }).join('');
+                <div class="card-content">
+                    <div class="card-title">${song.title}</div>
+                    <div class="card-artist">${song.artist}</div>
+                    <div class="card-meta">
+                        <div>${['Playlist', 'Video', 'Mix'][Math.floor(Math.random() * 3)]} • ${Math.floor(Math.random() * 500) + 100}K</div>
+                    </div>
+                    <span class="card-source-badge">${song.source}</span>
+                    <div class="card-actions">
+                        <button class="card-action-btn" onclick="advancedDiscover.playSong('default_${i}', '${song.title.replace(/'/g, "\\'")}', 'https://www.youtube.com/watch?v=${i}')">
+                            <i class="fas fa-play"></i> Play
+                        </button>
+                        <button class="card-action-btn download" onclick="advancedDiscover.downloadSong('default_${i}', '${song.title.replace(/'/g, "\\'")}', 'https://www.youtube.com/watch?v=${i}', '${song.source}')">
+                            <i class="fas fa-download"></i> Get
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        console.log(`Loaded ${defaults.length} default discoveries`);
     }
 }
 
