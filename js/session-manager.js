@@ -1,6 +1,7 @@
 /**
  * TuneLocal Session Manager
  * User session tracking and activity monitoring
+ * Version 1.0.1 - Enhanced session tracking
  */
 
 class SessionManager {
