@@ -1,6 +1,7 @@
 /**
  * TuneLocal Audio Visualizer
  * Real-time audio waveform visualization
+ * Version 1.0.1 - Enhanced visualization features
  */
 
 class AudioVisualizer {
