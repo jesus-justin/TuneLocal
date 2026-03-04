@@ -1,6 +1,7 @@
 /**
  * TuneLocal Internationalization (i18n)
  * Multi-language support system
+ * Version 1.0.1 - Enhanced i18n capabilities
  */
 
 class I18nManager {
