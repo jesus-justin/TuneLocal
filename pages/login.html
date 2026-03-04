@@ -3,571 +3,895 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TuneLocal - Login & Register</title>
-    <meta name="description" content="TuneLocal: Stream Spotify and YouTube, manage offline music, save playlists.">
+    <title>TuneLocal - Sign In</title>
+    <meta name="description" content="Sign in or create your TuneLocal account. Stream Spotify, YouTube, and manage offline music — all in one place.">
     <meta name="theme-color" content="#1db954">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231db954'/%3E%3Ctext x='50' y='68' text-anchor='middle' font-size='64' font-family='Segoe UI Emoji'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --primary-color: #1db954;
-            --secondary-color: #ff0050;
-            --bg-dark: #121212;
-            --bg-light: #1e1e1e;
-            --card-bg: #282828;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary: #1db954;
+            --primary-light: #1ed760;
+            --primary-glow: rgba(29,185,84,0.35);
+            --secondary: #ff0050;
+            --accent-blue: #7cf5ff;
+            --accent-purple: #667eea;
+            --accent-warm: #ffb347;
+            --bg: #0a0a0a;
+            --bg-1: #111111;
+            --bg-2: #1a1a1a;
+            --bg-card: #1e1e1e;
+            --text: #ffffff;
+            --text-2: #b3b3b3;
+            --text-3: #6b6b6b;
+            --border: rgba(255,255,255,0.08);
+            --border-2: rgba(255,255,255,0.14);
+            --ease: cubic-bezier(0.4,0,0.2,1);
+            --shadow-glow: 0 0 40px rgba(29,185,84,0.18);
         }
 
+        html { height: 100%; }
+
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
+            font-family: 'Poppins', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        ::selection { background: var(--primary-glow); color: #fff; }
+
+        /* ===== BACKGROUND ===== */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 70% 60% at 0% 0%, rgba(29,185,84,0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 100% 100%, rgba(102,126,234,0.08) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 60% at 50% 50%, rgba(255,0,80,0.04) 0%, transparent 65%);
+        }
+
+        .noise-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ===== SPLIT LAYOUT ===== */
+        .page-wrap {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* ===== LEFT PANEL ===== */
+        .left-panel {
+            flex: 0 0 48%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem 4rem 4rem 5rem;
+            position: relative;
+            border-right: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        /* Ambient glow behind left panel content */
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -20%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(29,185,84,0.12), transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Decorative floating notes */
+        .deco-note {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.06;
+            pointer-events: none;
+            animation: float-note 8s ease-in-out infinite;
+        }
+
+        .deco-note:nth-child(1) { top: 12%; left: 8%;  font-size: 2.5rem; animation-delay: 0s; }
+        .deco-note:nth-child(2) { top: 30%; right: 5%; font-size: 1.2rem; animation-delay: 1.5s; }
+        .deco-note:nth-child(3) { top: 62%; left: 5%;  font-size: 1.8rem; animation-delay: 3s; }
+        .deco-note:nth-child(4) { bottom: 18%; right: 8%; font-size: 2rem; animation-delay: 2s; }
+        .deco-note:nth-child(5) { bottom: 8%; left: 20%; font-size: 1rem; animation-delay: 4s; }
+
+        @keyframes float-note {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50%       { transform: translateY(-16px) rotate(8deg); }
+        }
+
+        /* Visualizer decoration */
+        .left-visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 40px;
+            margin-bottom: 2.5rem;
+        }
+
+        .lv-bar {
+            width: 4px;
+            background: linear-gradient(to top, var(--primary), var(--accent-blue));
+            border-radius: 3px 3px 0 0;
+            opacity: 0.5;
+            animation: lv-anim 1.4s ease-in-out infinite;
+        }
+
+        .lv-bar:nth-child(1)  { animation-delay: 0.00s; }
+        .lv-bar:nth-child(2)  { animation-delay: 0.10s; }
+        .lv-bar:nth-child(3)  { animation-delay: 0.20s; }
+        .lv-bar:nth-child(4)  { animation-delay: 0.30s; }
+        .lv-bar:nth-child(5)  { animation-delay: 0.40s; }
+        .lv-bar:nth-child(6)  { animation-delay: 0.50s; }
+        .lv-bar:nth-child(7)  { animation-delay: 0.60s; }
+        .lv-bar:nth-child(8)  { animation-delay: 0.70s; }
+
+        @keyframes lv-anim {
+            0%, 100% { height: 6px; }
+            50%       { height: 36px; }
+        }
+
+        /* Logo */
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
+            margin-bottom: 3rem;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
+            font-size: 1.1rem;
+            color: #000;
+            box-shadow: 0 4px 20px rgba(29,185,84,0.4);
+            flex-shrink: 0;
         }
 
-        /* Background Animation */
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .wave {
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(29, 185, 84, 0.1) 0%, transparent 70%);
-            animation: wave-animation 20s infinite linear;
-        }
-
-        .wave1 { top: -50%; left: -50%; animation-duration: 25s; }
-        .wave2 { 
-            top: -30%; 
-            left: -30%; 
-            background: radial-gradient(circle, rgba(255, 0, 80, 0.08) 0%, transparent 70%);
-            animation-duration: 30s;
-            animation-direction: reverse;
-        }
-        .wave3 { 
-            top: -40%; 
-            left: -40%; 
-            background: radial-gradient(circle, rgba(102, 126, 234, 0.06) 0%, transparent 70%);
-            animation-duration: 35s;
-        }
-
-        @keyframes wave-animation {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(50px, 50px) rotate(360deg); }
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            padding: 2rem;
-            z-index: 10;
-        }
-
-        .auth-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            align-items: center;
-        }
-
-        .auth-left {
-            display: none;
-        }
-
-        .auth-left.show {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .auth-hero {
-            font-size: 4rem;
-            line-height: 1.2;
-            font-weight: 800;
-            background: var(--gradient-1);
+        .logo-text {
+            background: linear-gradient(90deg, #fff 40%, var(--primary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .auth-subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            line-height: 1.6;
+        .left-headline {
+            font-size: clamp(2rem, 3.5vw, 3rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.08;
+            margin-bottom: 1.25rem;
         }
 
-        .auth-form-container {
-            background: rgba(40, 40, 40, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 3rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        .left-headline .hl {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .auth-tabs {
+        .left-sub {
+            font-size: 1rem;
+            color: var(--text-2);
+            line-height: 1.75;
+            margin-bottom: 2.5rem;
+            max-width: 380px;
+        }
+
+        /* Feature list */
+        .feature-list {
             display: flex;
+            flex-direction: column;
             gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
         }
 
-        .auth-tab {
-            padding: 1rem 1.5rem;
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .fi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .fi-green  { background: rgba(29,185,84,0.15);  color: var(--primary); }
+        .fi-red    { background: rgba(255,0,80,0.15);   color: var(--secondary); }
+        .fi-blue   { background: rgba(124,245,255,0.15);color: var(--accent-blue); }
+        .fi-purple { background: rgba(102,126,234,0.15);color: var(--accent-purple); }
+
+        .fi-text { font-size: 0.9rem; font-weight: 600; color: var(--text-2); }
+        .fi-text strong { color: var(--text); display: block; font-size: 0.95rem; }
+
+        /* Back link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 3rem;
+            color: var(--text-3);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover { color: var(--text-2); }
+
+        /* ===== RIGHT PANEL ===== */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 3rem 3rem 4rem;
+        }
+
+        .form-card {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        /* ===== TAB SWITCHER ===== */
+        .tab-switcher {
+            display: flex;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 5px;
+            margin-bottom: 2.5rem;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.7rem 1rem;
             background: transparent;
             border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: var(--transition);
-            position: relative;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-        }
-
-        .auth-tab.active {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
-        }
-
-        .auth-form {
-            display: none;
-        }
-
-        .auth-form.active {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .form-group input,
-        .form-group textarea {
-            padding: 0.85rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: var(--transition);
-            font-family: inherit;
-        }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .btn-primary {
-            padding: 1rem;
-            background: linear-gradient(135deg, var(--primary-color) 0%, #1ed760 100%);
-            border: none;
-            border-radius: 10px;
-            color: #000;
-            font-size: 1rem;
-            font-weight: 700;
+            color: var(--text-3);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            margin-top: 1rem;
+            transition: all 0.25s var(--ease);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(29, 185, 84, 0.3);
+        .tab-btn.active {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
-        .btn-primary:active {
-            transform: translateY(0);
+        .tab-btn.active i { color: var(--primary); }
+
+        /* ===== FORM HEADER ===== */
+        .form-header { margin-bottom: 2rem; }
+
+        .form-header h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.35rem;
         }
 
+        .form-header p { font-size: 0.88rem; color: var(--text-2); }
+
+        /* ===== AUTH FORMS ===== */
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+
+        /* ===== FORM FIELDS ===== */
+        .field-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-2);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.02em;
+        }
+
+        .field-wrap {
+            position: relative;
+        }
+
+        .field-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-3);
+            font-size: 0.9rem;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        .field-wrap input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.25s var(--ease);
+        }
+
+        .field-wrap input::placeholder { color: var(--text-3); }
+
+        .field-wrap input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.07);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(29,185,84,0.12);
+        }
+
+        .field-wrap input:focus + .field-icon,
+        .field-wrap:focus-within .field-icon { color: var(--primary); }
+
+        /* Password toggle */
+        .pw-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-3);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.88rem;
+            transition: color 0.2s;
+        }
+
+        .pw-toggle:hover { color: var(--text-2); }
+
+        /* Password field needs right padding for toggle */
+        .has-toggle input { padding-right: 3rem; }
+
+        /* Two-column row */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.875rem;
+        }
+
+        /* ===== FORM MESSAGE ===== */
         .form-message {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
             padding: 0.75rem 1rem;
             border-radius: 10px;
-            font-size: 0.95rem;
-            display: none;
-            animation: slideDown 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1.25rem;
+            animation: slide-in 0.3s var(--ease);
+        }
+
+        @keyframes slide-in {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         .form-message.error {
-            background: rgba(255, 0, 80, 0.2);
-            color: #ff6b9d;
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            background: rgba(255,0,80,0.12);
+            border: 1px solid rgba(255,0,80,0.2);
+            color: #ff6b9d;
         }
 
         .form-message.success {
-            background: rgba(29, 185, 84, 0.2);
-            color: #1db954;
+            display: flex;
+            background: rgba(29,185,84,0.12);
+            border: 1px solid rgba(29,185,84,0.2);
+            color: var(--primary);
+        }
+
+        /* ===== SUBMIT BUTTON ===== */
+        .btn-submit {
+            width: 100%;
+            padding: 0.95rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
+            margin-top: 0.5rem;
+            transition: all 0.25s var(--ease);
+            box-shadow: 0 4px 20px rgba(29,185,84,0.3);
+            position: relative;
+            overflow: hidden;
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(29,185,84,0.45);
         }
 
-        .loading {
-            opacity: 0.7;
+        .btn-submit:active { transform: translateY(0); }
+
+        .btn-submit:disabled {
+            opacity: 0.65;
             pointer-events: none;
         }
 
+        /* Spinner */
         .spinner {
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(0,0,0,0.25);
             border-top-color: #000;
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== SWITCH PROMPT ===== */
+        .switch-prompt {
+            text-align: center;
+            margin-top: 1.75rem;
+            font-size: 0.85rem;
+            color: var(--text-3);
         }
 
-        @media (max-width: 768px) {
-            .auth-wrapper {
+        .switch-prompt button {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0 2px;
+            transition: color 0.2s;
+        }
+
+        .switch-prompt button:hover { color: var(--primary-light); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .left-panel {
+                display: none;
+            }
+
+            .right-panel {
+                padding: 2.5rem 1.5rem;
+                align-items: stretch;
+            }
+
+            .form-card {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .field-row {
                 grid-template-columns: 1fr;
             }
 
-            .auth-form-container {
-                padding: 2rem;
+            .right-panel {
+                padding: 2rem 1.25rem;
             }
+        }
 
-            .auth-hero {
-                font-size: 2.5rem;
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Background Animation -->
-    <div class="bg-animation">
-        <div class="wave wave1"></div>
-        <div class="wave wave2"></div>
-        <div class="wave wave3"></div>
+
+<div class="bg-layer"></div>
+<div class="noise-layer"></div>
+
+<div class="page-wrap">
+
+    <!-- ===== LEFT PANEL ===== -->
+    <div class="left-panel">
+        <!-- Decorative floating notes -->
+        <i class="fas fa-music deco-note"></i>
+        <i class="fas fa-headphones deco-note"></i>
+        <i class="fas fa-compact-disc deco-note"></i>
+        <i class="fas fa-guitar deco-note"></i>
+        <i class="fas fa-music deco-note"></i>
+
+        <!-- Logo -->
+        <a href="./landing.html" class="logo">
+            <div class="logo-icon"><i class="fas fa-music"></i></div>
+            <span class="logo-text">TuneLocal</span>
+        </a>
+
+        <!-- Visualizer -->
+        <div class="left-visualizer">
+            <div class="lv-bar"></div><div class="lv-bar"></div>
+            <div class="lv-bar"></div><div class="lv-bar"></div>
+            <div class="lv-bar"></div><div class="lv-bar"></div>
+            <div class="lv-bar"></div><div class="lv-bar"></div>
+        </div>
+
+        <h1 class="left-headline">
+            Your Music,<br>
+            <span class="hl">All in One Place</span>
+        </h1>
+
+        <p class="left-sub">
+            Stream from Spotify and YouTube, manage your offline library, and discover music you love — all from one beautiful, fast hub.
+        </p>
+
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="fi-icon fi-green"><i class="fab fa-spotify"></i></div>
+                <div class="fi-text">
+                    <strong>Spotify & YouTube</strong>
+                    Stream millions of songs instantly
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="fi-icon fi-blue"><i class="fas fa-hard-drive"></i></div>
+                <div class="fi-text">
+                    <strong>Offline Library</strong>
+                    Upload & play your own music files
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="fi-icon fi-purple"><i class="fas fa-list-ul"></i></div>
+                <div class="fi-text">
+                    <strong>Smart Playlists</strong>
+                    Mix tracks from any source
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="fi-icon fi-red"><i class="fas fa-waveform-lines"></i></div>
+                <div class="fi-text">
+                    <strong>Audio Visualizer</strong>
+                    Watch your music come alive
+                </div>
+            </div>
+        </div>
+
+        <a href="./landing.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to homepage
+        </a>
     </div>
 
-    <div class="container">
-        <div class="auth-wrapper">
-            <!-- Left Side -->
-            <div class="auth-left show">
-                <div class="auth-hero">
-                    🎵 TuneLocal
-                </div>
-                <div class="auth-subtitle">
-                    Your personal music streaming hub. Stream from Spotify, YouTube, manage offline music, and create custom playlists - all in one place.
-                </div>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
-                    <div style="flex: 1; min-width: 150px;">
-                        <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;">∞</div>
-                        <div style="font-size: 0.95rem; color: var(--text-secondary);">Unlimited Music</div>
-                    </div>
-                    <div style="flex: 1; min-width: 150px;">
-                        <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;">📱</div>
-                        <div style="font-size: 0.95rem; color: var(--text-secondary);">Multiple Sources</div>
-                    </div>
-                    <div style="flex: 1; min-width: 150px;">
-                        <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 0.5rem;">🔒</div>
-                        <div style="font-size: 0.95rem; color: var(--text-secondary);">Secure & Private</div>
-                    </div>
-                </div>
+    <!-- ===== RIGHT PANEL ===== -->
+    <div class="right-panel">
+        <div class="form-card">
+
+            <!-- Tab Switcher -->
+            <div class="tab-switcher">
+                <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+                <button class="tab-btn" id="tab-register" onclick="switchTab('register')">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
             </div>
 
-            <!-- Right Side - Forms -->
-            <div class="auth-form-container">
-                <div class="auth-tabs">
-                    <button class="auth-tab active" onclick="switchTab('login')">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                    <button class="auth-tab" onclick="switchTab('register')">
-                        <i class="fas fa-user-plus"></i> Register
-                    </button>
+            <!-- ===== LOGIN FORM ===== -->
+            <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)" novalidate>
+                <div class="form-header">
+                    <h2>Welcome back 👋</h2>
+                    <p>Sign in to your TuneLocal account</p>
                 </div>
 
-                <!-- Login Form -->
-                <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
-                    <div class="form-message" id="loginMessage"></div>
+                <div class="form-message" id="loginMessage"></div>
 
-                    <div class="form-group">
-                        <label for="loginUsername">Username or Email</label>
-                        <input 
-                            type="text" 
-                            id="loginUsername" 
-                            placeholder="Enter your username or email"
-                            required
-                        >
+                <div class="field-group">
+                    <label class="field-label" for="loginUsername">Username or Email</label>
+                    <div class="field-wrap">
+                        <input type="text" id="loginUsername" placeholder="Enter your username or email" required autocomplete="username">
+                        <i class="fas fa-user field-icon"></i>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input 
-                            type="password" 
-                            id="loginPassword" 
-                            placeholder="Enter your password"
-                            required
-                        >
+                <div class="field-group">
+                    <label class="field-label" for="loginPassword">Password</label>
+                    <div class="field-wrap has-toggle">
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="pw-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Show password">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
+                </div>
 
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                </form>
+                <button type="submit" class="btn-submit" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
 
-                <!-- Register Form -->
-                <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
-                    <div class="form-message" id="registerMessage"></div>
+            <!-- ===== REGISTER FORM ===== -->
+            <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)" novalidate>
+                <div class="form-header">
+                    <h2>Join TuneLocal 🎵</h2>
+                    <p>Create your free account in seconds</p>
+                </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="regFirstName">First Name</label>
-                            <input 
-                                type="text" 
-                                id="regFirstName" 
-                                placeholder="John"
-                            >
-                        </div>
-                        <div class="form-group">
-                            <label for="regLastName">Last Name</label>
-                            <input 
-                                type="text" 
-                                id="regLastName" 
-                                placeholder="Doe"
-                            >
+                <div class="form-message" id="registerMessage"></div>
+
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label" for="regFirstName">First Name</label>
+                        <div class="field-wrap">
+                            <input type="text" id="regFirstName" placeholder="John" autocomplete="given-name">
+                            <i class="fas fa-user field-icon"></i>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="regUsername">Username</label>
-                        <input 
-                            type="text" 
-                            id="regUsername" 
-                            placeholder="Choose a username"
-                            required
-                        >
+                    <div class="field-group">
+                        <label class="field-label" for="regLastName">Last Name</label>
+                        <div class="field-wrap">
+                            <input type="text" id="regLastName" placeholder="Doe" autocomplete="family-name">
+                            <i class="fas fa-user field-icon"></i>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="regEmail">Email</label>
-                        <input 
-                            type="email" 
-                            id="regEmail" 
-                            placeholder="your@email.com"
-                            required
-                        >
+                <div class="field-group">
+                    <label class="field-label" for="regUsername">Username</label>
+                    <div class="field-wrap">
+                        <input type="text" id="regUsername" placeholder="Choose a username" required autocomplete="username">
+                        <i class="fas fa-at field-icon"></i>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="regPassword">Password</label>
-                        <input 
-                            type="password" 
-                            id="regPassword" 
-                            placeholder="At least 6 characters"
-                            required
-                        >
+                <div class="field-group">
+                    <label class="field-label" for="regEmail">Email Address</label>
+                    <div class="field-wrap">
+                        <input type="email" id="regEmail" placeholder="your@email.com" required autocomplete="email">
+                        <i class="fas fa-envelope field-icon"></i>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="regConfirmPassword">Confirm Password</label>
-                        <input 
-                            type="password" 
-                            id="regConfirmPassword" 
-                            placeholder="Confirm your password"
-                            required
-                        >
+                <div class="field-group">
+                    <label class="field-label" for="regPassword">Password</label>
+                    <div class="field-wrap has-toggle">
+                        <input type="password" id="regPassword" placeholder="At least 6 characters" required autocomplete="new-password">
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="pw-toggle" onclick="togglePassword('regPassword', this)" aria-label="Show password">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
+                </div>
 
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-user-plus"></i> Create Account
-                    </button>
-                </form>
-            </div>
+                <div class="field-group">
+                    <label class="field-label" for="regConfirmPassword">Confirm Password</label>
+                    <div class="field-wrap has-toggle">
+                        <input type="password" id="regConfirmPassword" placeholder="Repeat your password" required autocomplete="new-password">
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="pw-toggle" onclick="togglePassword('regConfirmPassword', this)" aria-label="Show password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+
+            <!-- Switch prompt -->
+            <p class="switch-prompt" id="switchPrompt">
+                Don't have an account?
+                <button onclick="switchTab('register')">Create one free</button>
+            </p>
+
         </div>
     </div>
 
-    <script>
-        const API_BASE = '../api/auth.php';
+</div>
 
-        function switchTab(tab) {
-            // Update tabs
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+<script>
+    const API_BASE = '../api/auth.php';
 
-            if (tab === 'login') {
-                document.querySelector('[onclick="switchTab(\'login\')"]').classList.add('active');
-                document.getElementById('loginForm').classList.add('active');
+    /* ===== TAB SWITCHING ===== */
+    function switchTab(tab) {
+        const isLogin = tab === 'login';
+
+        // Tabs
+        document.getElementById('tab-login').classList.toggle('active', isLogin);
+        document.getElementById('tab-register').classList.toggle('active', !isLogin);
+
+        // Forms
+        document.getElementById('loginForm').classList.toggle('active', isLogin);
+        document.getElementById('registerForm').classList.toggle('active', !isLogin);
+
+        // Switch prompt text
+        document.getElementById('switchPrompt').innerHTML = isLogin
+            ? `Don't have an account? <button onclick="switchTab('register')">Create one free</button>`
+            : `Already have an account? <button onclick="switchTab('login')">Sign in</button>`;
+
+        // Clear messages
+        clearMessage('login');
+        clearMessage('register');
+    }
+
+    /* ===== MESSAGES ===== */
+    function showMessage(formId, message, type) {
+        const el = document.getElementById(formId + 'Message');
+        el.className = 'form-message ' + type;
+        el.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>${message}`;
+    }
+
+    function clearMessage(formId) {
+        const el = document.getElementById(formId + 'Message');
+        if (el) { el.className = 'form-message'; el.innerHTML = ''; }
+    }
+
+    /* ===== PASSWORD TOGGLE ===== */
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+    }
+
+    /* ===== BUTTON LOADING STATE ===== */
+    function setLoading(btnId, loading, originalHTML) {
+        const btn = document.getElementById(btnId);
+        if (loading) {
+            btn.dataset.original = btn.innerHTML;
+            btn.innerHTML = `<span class="spinner"></span> Please wait…`;
+            btn.disabled = true;
+        } else {
+            btn.innerHTML = btn.dataset.original || originalHTML;
+            btn.disabled = false;
+        }
+    }
+
+    /* ===== LOGIN ===== */
+    async function handleLogin(event) {
+        event.preventDefault();
+        clearMessage('login');
+
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!username || !password) {
+            showMessage('login', 'Please fill in all fields.', 'error');
+            return;
+        }
+
+        setLoading('loginBtn', true);
+
+        try {
+            const res = await fetch(`${API_BASE}?action=login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                showMessage('login', 'Login successful! Redirecting…', 'success');
+                setTimeout(() => { window.location.href = './index.html'; }, 1400);
             } else {
-                document.querySelector('[onclick="switchTab(\'register\')"]').classList.add('active');
-                document.getElementById('registerForm').classList.add('active');
+                showMessage('login', data.error || 'Login failed. Please try again.', 'error');
+                setLoading('loginBtn', false);
             }
+        } catch {
+            showMessage('login', 'Network error. Please check your connection.', 'error');
+            setLoading('loginBtn', false);
+        }
+    }
 
-            // Clear messages
-            document.getElementById('loginMessage').textContent = '';
-            document.getElementById('registerMessage').textContent = '';
+    /* ===== REGISTER ===== */
+    async function handleRegister(event) {
+        event.preventDefault();
+        clearMessage('register');
+
+        const firstName       = document.getElementById('regFirstName').value.trim();
+        const lastName        = document.getElementById('regLastName').value.trim();
+        const username        = document.getElementById('regUsername').value.trim();
+        const email           = document.getElementById('regEmail').value.trim();
+        const password        = document.getElementById('regPassword').value;
+        const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+        if (!username || !email || !password || !confirmPassword) {
+            showMessage('register', 'Please fill in all required fields.', 'error');
+            return;
         }
 
-        function showMessage(formId, message, type) {
-            const messageEl = document.getElementById(formId + 'Message');
-            messageEl.textContent = message;
-            messageEl.className = `form-message ${type}`;
-            messageEl.innerHTML = `
-                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
-                ${message}
-            `;
+        if (password !== confirmPassword) {
+            showMessage('register', 'Passwords do not match.', 'error');
+            return;
         }
 
-        async function handleLogin(event) {
-            event.preventDefault();
+        setLoading('registerBtn', true);
 
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-            const form = event.target;
+        try {
+            const res = await fetch(`${API_BASE}?action=register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ firstName, lastName, username, email, password, confirmPassword })
+            });
 
-            form.classList.add('loading');
+            const data = await res.json();
 
-            try {
-                const response = await fetch(`${API_BASE}?action=login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('login', 'Login successful! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = './index.html';
-                    }, 1500);
-                } else {
-                    showMessage('login', data.error || 'Login failed', 'error');
-                }
-            } catch (error) {
-                showMessage('login', 'Network error. Please try again.', 'error');
+            if (data.success) {
+                showMessage('register', 'Account created! Redirecting…', 'success');
+                setTimeout(() => { window.location.href = './index.html'; }, 1400);
+            } else {
+                showMessage('register', data.error || 'Registration failed. Please try again.', 'error');
+                setLoading('registerBtn', false);
             }
-
-            form.classList.remove('loading');
+        } catch {
+            showMessage('register', 'Network error. Please check your connection.', 'error');
+            setLoading('registerBtn', false);
         }
+    }
 
-        async function handleRegister(event) {
-            event.preventDefault();
-
-            const firstName = document.getElementById('regFirstName').value;
-            const lastName = document.getElementById('regLastName').value;
-            const username = document.getElementById('regUsername').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            const form = event.target;
-
-            form.classList.add('loading');
-
-            try {
-                const response = await fetch(`${API_BASE}?action=register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        firstName,
-                        lastName,
-                        username,
-                        email,
-                        password,
-                        confirmPassword
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('register', 'Account created! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = './index.html';
-                    }, 1500);
-                } else {
-                    showMessage('register', data.error || 'Registration failed', 'error');
-                }
-            } catch (error) {
-                showMessage('register', 'Network error. Please try again.', 'error');
-            }
-
-            form.classList.remove('loading');
-        }
-
-        // Check if already logged in
-        async function checkAuth() {
-            try {
-                const response = await fetch(`${API_BASE}?action=check`);
-                const data = await response.json();
-                if (data.authenticated) {
-                    window.location.href = './index.html';
-                }
-            } catch (error) {
-                console.error('Auth check error:', error);
-            }
-        }
-
-        checkAuth();
-    </script>
+    /* ===== AUTH CHECK ===== */
+    (async function checkAuth() {
+        try {
+            const res = await fetch(`${API_BASE}?action=check`);
+            const data = await res.json();
+            if (data.authenticated) window.location.href = './index.html';
+        } catch {}
+    })();
+</script>
 </body>
 </html>

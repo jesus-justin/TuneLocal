@@ -21,13 +21,16 @@ class MusicMoodSelector {
     addStyles() {
         const style = document.createElement('style');
         style.textContent = `
-            .mood-selector-container { position: fixed; left: 20px; top: 100px; background: rgba(30, 30, 30, 0.95); border: 1px solid rgba(29, 185, 84, 0.3); border-radius: 12px; padding: 1.25rem; min-width: 200px; z-index: 997; backdrop-filter: blur(10px); }
+            .mood-selector-container { position: fixed; left: 20px; top: 120px; background: rgba(30, 30, 30, 0.95); border: 1px solid rgba(29, 185, 84, 0.3); border-radius: 12px; padding: 1.25rem; min-width: 200px; z-index: 997; backdrop-filter: blur(10px); max-height: calc(100vh - 180px); overflow-y: auto; }
             .mood-title { color: var(--primary-color); font-weight: bold; margin-bottom: 1rem; font-size: 13px; }
             .mood-button { width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 2px solid rgba(29, 185, 84, 0.2); border-radius: 8px; background: rgba(0, 0, 0, 0.2); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.75rem; }
             .mood-button:hover { border-color: var(--primary-color); background: rgba(29, 185, 84, 0.1); }
             .mood-button.active { background: rgba(29, 185, 84, 0.2); border-color: var(--primary-color); color: var(--primary-color); font-weight: bold; }
             .mood-icon { font-size: 16px; }
             .mood-label { flex: 1; font-size: 12px; }
+            @media (max-height: 800px) {
+                .mood-selector-container { top: 90px; max-height: calc(100vh - 140px); }
+            }
         `;
         document.head.appendChild(style);
     }

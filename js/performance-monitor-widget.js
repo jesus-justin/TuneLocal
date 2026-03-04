@@ -13,10 +13,13 @@ class PerformanceMonitor {
     addStyles() {
         const style = document.createElement('style');
         style.textContent = `
-            .perf-monitor { position: fixed; top: 80px; right: 20px; background: rgba(30, 30, 30, 0.9); border: 1px solid rgba(29, 185, 84, 0.3); border-radius: 10px; padding: 1rem; font-family: monospace; font-size: 12px; color: #4ade80; z-index: 999; min-width: 180px; max-width: 250px; }
+            .perf-monitor { position: fixed; right: 20px; bottom: 120px; background: rgba(30, 30, 30, 0.9); border: 1px solid rgba(29, 185, 84, 0.3); border-radius: 10px; padding: 1rem; font-family: monospace; font-size: 12px; color: #4ade80; z-index: 999; min-width: 180px; max-width: 220px; }
             .perf-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
             .perf-label { color: var(--text-secondary); }
             .perf-value { color: #1db954; font-weight: bold; }
+            @media (max-width: 900px) {
+                .perf-monitor { bottom: 140px; right: 12px; }
+            }
         `;
         document.head.appendChild(style);
     }
