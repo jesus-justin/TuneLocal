@@ -1,6 +1,7 @@
 /**
  * TuneLocal - Cache Manager
  * Manages API response caching to improve performance
+ * Version 1.0.1 - Enhanced caching capabilities
  */
 
 class CacheManager {
