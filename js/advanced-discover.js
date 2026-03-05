@@ -403,9 +403,30 @@ class AdvancedDiscover {
             return;
         }
 
-        // Get suggestions from Music Database (Real songs and artists)
-        const dbSuggestions = musicDatabase.getSuggestions(query);
-        if (dbSuggestions.length === 0) return;
+        // Get suggestions from Music Database (real songs/artists) and AI engine
+        const dbSuggestions = typeof musicDatabase !== 'undefined'
+            ? musicDatabase.getSuggestions(query)
+            : [];
+        const aiSuggestions = typeof aiSearchEngine !== 'undefined'
+            ? aiSearchEngine.getSuggestions(query).map(s => s.text)
+            : [];
+
+        // Merge and dedupe while preserving order (DB first, then AI)
+        const seen = new Set();
+        const merged = [];
+        [...dbSuggestions, ...aiSuggestions].forEach(text => {
+            const key = text.toLowerCase();
+            if (!seen.has(key)) {
+                seen.add(key);
+                merged.push(text);
+            }
+        });
+
+        if (merged.length === 0) {
+            const existing = document.querySelector('.search-suggestions');
+            if (existing) existing.style.display = 'none';
+            return;
+        }
 
         // Create or update suggestions dropdown
         let suggestionsBox = document.querySelector('.search-suggestions');
@@ -413,24 +434,31 @@ class AdvancedDiscover {
             suggestionsBox = document.createElement('div');
             suggestionsBox.className = 'search-suggestions';
             const searchInput = document.getElementById('discoverSearchInput');
-            if (searchInput) {
+            if (searchInput && searchInput.parentElement) {
                 searchInput.parentElement.appendChild(suggestionsBox);
             }
             this.injectSuggestionsStyles();
         }
 
-        suggestionsBox.innerHTML = dbSuggestions.map((sugg, idx) => `
-            <div class="suggestion-item" onclick="
-                document.getElementById('discoverSearchInput').value = '${sugg.replace(/'/g, "\\'")}';
-                advancedDiscover.performWebSearch();
-                this.closest('.search-suggestions').style.display = 'none';
-            ">
-                <i class="fas fa-music"></i>
-                <span>${sugg}</span>
-            </div>
-        `).join('');
-            </div>
-        `).join('');
+        suggestionsBox.innerHTML = merged.map((sugg) => {
+            const safe = sugg.replace(/'/g, "\\'");
+            return `
+                <div class="suggestion-item" data-suggestion="${safe}">
+                    <i class="fas fa-music"></i>
+                    <span>${sugg}</span>
+                </div>
+            `;
+        }).join('');
+
+        suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const value = item.getAttribute('data-suggestion') || item.textContent.trim();
+                const input = document.getElementById('discoverSearchInput');
+                if (input) input.value = value;
+                this.performWebSearch();
+                suggestionsBox.style.display = 'none';
+            });
+        });
 
         suggestionsBox.style.display = 'block';
     }
@@ -452,10 +480,26 @@ class AdvancedDiscover {
 
     updateRelatedSearches(query) {
         // Get related suggestions from Music Database
-        const related = musicDatabase.getSuggestions(query);
-        
-        // Also get trending songs as fallback
-        if (related.length === 0) {
+        const dbRelated = typeof musicDatabase !== 'undefined'
+            ? musicDatabase.getSuggestions(query)
+            : [];
+
+        // Also get AI-related terms when available
+        const aiRelated = typeof aiSearchEngine !== 'undefined'
+            ? aiSearchEngine.getRelatedSearches(query)
+            : [];
+
+        const relatedSet = new Set();
+        const merged = [];
+        [...dbRelated, ...aiRelated].forEach(term => {
+            const key = term.toLowerCase();
+            if (!relatedSet.has(key)) {
+                relatedSet.add(key);
+                merged.push(term);
+            }
+        });
+
+        if (merged.length === 0) {
             return;
         }
 
@@ -467,7 +511,7 @@ class AdvancedDiscover {
                 <i class="fas fa-link"></i> Try These Related Searches
             </h4>
             <div class="related-search-tags">
-                ${related.slice(0, 6).map(tag => `
+                ${merged.slice(0, 6).map(tag => `
                     <div class="related-tag" onclick="
                         document.getElementById('discoverSearchInput').value = '${tag.replace(/'/g, "\\'")}';
                         advancedDiscover.performWebSearch();
@@ -581,32 +625,130 @@ class AdvancedDiscover {
 
     performWebSearch() {
         const searchInput = document.getElementById('discoverSearchInput');
-        const searchType = document.getElementById('discoverSearchType');
-        const query = searchInput ? searchInput.value.trim() : '';
-        const source = searchType ? searchType.value : 'all';
+        const searchTypeSelect = document.getElementById('discoverSearchType');
+        const rawQuery = searchInput ? searchInput.value.trim() : '';
+        const source = searchTypeSelect ? searchTypeSelect.value : 'all';
 
-        if (!query) {
-            showNotification('Please enter a search term', 'warning');
+        if (!rawQuery) {
+            if (typeof showNotification === 'function') {
+                showNotification('Please enter a search term', 'warning');
+            }
             return;
         }
 
-        console.log(`🔍 Searching for "${query}" in ${source}`);
+        // Use AI engine to auto-correct and interpret the query when available
+        let query = rawQuery;
+        if (typeof aiSearchEngine !== 'undefined') {
+            const corrected = aiSearchEngine.autoCorrect(rawQuery);
+            if (corrected && corrected.toLowerCase() !== rawQuery.toLowerCase()) {
+                query = corrected;
+                if (typeof showNotification === 'function') {
+                    showNotification(`Searching for "${corrected}" (auto‑corrected)`, 'info');
+                }
+            }
+        }
 
-        // Search using Music Database (Real Songs)
-        const dbResults = musicDatabase.search(query);
-        console.log(`✅ Found ${dbResults.length} songs in music database`);
+        console.log(`🔍 Discover search "${query}" via ${source} (raw: "${rawQuery}")`);
+
+        // Always search our local music database (real songs mapped to YouTube)
+        const dbResults = typeof musicDatabase !== 'undefined'
+            ? musicDatabase.search(query)
+            : [];
+
+        // AI results provide fuzzy matches on artists / genres / moods
+        const aiResults = typeof aiSearchEngine !== 'undefined'
+            ? aiSearchEngine.search(query)
+            : [];
 
         // Save to search history
         this.addToSearchHistory(query);
 
-        // Display database results (like YouTube - individual songs with artists)
-        if (dbResults.length > 0) {
-            this.displayMusicDatabaseResults(dbResults, query);
-        } else {
-            showNotification('No songs found. Try searching by artist name or song title.', 'info');
+        // If user explicitly picked non-YouTube providers, fall back to existing mock generators
+        if (source === 'spotify') {
+            const results = this.generateSpotifyResults(query);
+            this.displaySearchResults(results, 'Spotify');
+            this.updateRelatedSearches(query);
+            return;
+        }
+        if (source === 'soundcloud') {
+            const results = this.generateSoundCloudResults(query);
+            this.displaySearchResults(results, 'SoundCloud');
+            this.updateRelatedSearches(query);
+            return;
+        }
+        if (source === 'web') {
+            const results = this.generateWebResults(query);
+            this.displaySearchResults(results, 'Web');
+            this.updateRelatedSearches(query);
+            return;
         }
 
-        // Show related searches
+        // Default / YouTube path: combine DB songs + AI suggestions and render as rich cards
+        const combinedResults = [];
+
+        // 1) Real songs from our music database (mapped to YouTube search URLs)
+        dbResults.forEach((song) => {
+            combinedResults.push({
+                id: `db_${song.artist}_${song.title}`.replace(/\s+/g, '_'),
+                title: song.title,
+                artist: song.artist,
+                source: 'YouTube',
+                duration: song.duration || '3:00',
+                views: song.views || '100K',
+                icon: 'fab fa-youtube',
+                color: 'linear-gradient(135deg, #ff0000, #ff6b6b)',
+                url: song.url,
+                type: 'youtube',
+                relevanceScore: song.relevance || 80
+            });
+        });
+
+        // 2) AI suggestions converted into playable "smart mixes"
+        aiResults.slice(0, 6).forEach((aiItem, index) => {
+            const key = `ai_${aiItem.type}_${aiItem.term}`.toLowerCase();
+            // Avoid creating a duplicate if DB already covered this exact term
+            const exists = combinedResults.some(
+                r => r.id.toLowerCase() === key || r.title.toLowerCase() === aiItem.term.toLowerCase()
+            );
+            if (exists) return;
+
+            const displayTitle =
+                aiItem.type === 'song'
+                    ? aiItem.term
+                    : aiItem.type === 'artist'
+                        ? `${aiItem.term} – Top Tracks Mix`
+                        : aiItem.type === 'genre'
+                            ? `${this.capitalize(aiItem.term)} Essentials`
+                            : aiItem.type === 'mood'
+                                ? `${this.capitalize(aiItem.term)} Mood Mix`
+                                : aiItem.term;
+
+            combinedResults.push({
+                id: key,
+                title: displayTitle,
+                artist: aiItem.artist || aiItem.category || 'Smart mix',
+                source: 'Smart AI Search',
+                duration: `${3 + index}:${(15 * index) % 60}`.padStart(4, '0'),
+                views: `${(Math.random() * 900 + 100).toFixed(0)}K`,
+                icon: typeof aiSearchEngine !== 'undefined'
+                    ? aiSearchEngine.getTypeIcon(aiItem.type)
+                    : 'fas fa-music',
+                color: this.getColorForType(aiItem.type),
+                url: `https://www.youtube.com/results?search_query=${encodeURIComponent(aiItem.term)}`,
+                type: 'ai',
+                relevanceScore: aiItem.relevanceScore || 75
+            });
+        });
+
+        if (combinedResults.length === 0) {
+            if (typeof showNotification === 'function') {
+                showNotification('No results found. Try searching by artist name or song title.', 'info');
+            }
+        } else {
+            this.displaySearchResults(combinedResults, 'AI + YouTube');
+        }
+
+        // Show related searches using music DB + AI suggestions
         this.updateRelatedSearches(query);
     }
 
@@ -1176,151 +1318,6 @@ class AdvancedDiscover {
         } catch (e) {
             return '';
         }
-    }
-                    justify-content: center;
-                }
-
-                .modal-overlay-discover {
-                    position: absolute;
-                    inset: 0;
-                    background: rgba(0, 0, 0, 0.7);
-                    backdrop-filter: blur(10px);
-                }
-
-                .modal-discover-content {
-                    position: relative;
-                    background: linear-gradient(135deg, rgba(20, 20, 40, 0.98), rgba(30, 30, 60, 0.98));
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 16px;
-                    max-width: 800px;
-                    width: 90%;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-                    animation: slideUp 0.3s ease;
-                }
-
-                @keyframes slideUp {
-                    from { transform: translateY(40px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
-                }
-
-                .modal-discover-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 24px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                }
-
-                .modal-discover-header h3 {
-                    margin: 0;
-                    color: white;
-                    font-size: 20px;
-                }
-
-                .close-btn {
-                    background: rgba(255, 255, 255, 0.1);
-                    border: none;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    color: white;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.2s ease;
-                }
-
-                .close-btn:hover {
-                    background: rgba(255, 255, 255, 0.15);
-                }
-
-                .modal-discover-body {
-                    padding: 24px;
-                }
-
-                .player-embed {
-                    margin-bottom: 24px;
-                    border-radius: 12px;
-                    overflow: hidden;
-                }
-
-                .player-embed iframe {
-                    border-radius: 12px;
-                }
-
-                .player-info {
-                    background: rgba(255, 255, 255, 0.08);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    padding: 16px;
-                }
-
-                .player-info h4 {
-                    margin: 0 0 8px 0;
-                    color: white;
-                    font-size: 16px;
-                }
-
-                .player-info p {
-                    margin: 0 0 16px 0;
-                    color: rgba(255, 255, 255, 0.6);
-                    font-size: 12px;
-                }
-
-                .player-actions {
-                    display: flex;
-                    gap: 8px;
-                    flex-wrap: wrap;
-                }
-
-                .play-action-btn {
-                    flex: 1;
-                    min-width: 140px;
-                    padding: 10px 14px;
-                    background: linear-gradient(135deg, rgba(29, 185, 84, 0.3), rgba(29, 185, 84, 0.1));
-                    border: 1px solid rgba(29, 185, 84, 0.5);
-                    border-radius: 8px;
-                    color: white;
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 13px;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 6px;
-                }
-
-                .play-action-btn:hover {
-                    background: linear-gradient(135deg, rgba(29, 185, 84, 0.5), rgba(29, 185, 84, 0.3));
-                    border-color: rgba(29, 185, 84, 0.7);
-                }
-
-                @media (max-width: 768px) {
-                    .modal-discover-content {
-                        width: 95%;
-                    }
-
-                    .player-embed iframe {
-                        height: 250px !important;
-                    }
-
-                    .player-actions {
-                        flex-direction: column;
-                    }
-
-                    .play-action-btn {
-                        min-width: auto;
-                    }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-
-        modal.style.display = 'flex';
     }
 
     extractYouTubeId(url) {
