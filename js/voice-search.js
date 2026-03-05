@@ -72,9 +72,26 @@ class VoiceSearch {
         
         if (lower.includes('play') || lower.includes('search')) {
             const query = transcript.replace(/play|search/gi, '').trim();
-            // Trigger search with query
-            if (typeof showNotification === 'function') {
-                showNotification(`Searching for: ${query}`, 'info');
+            // Trigger AI-powered discover search when available
+            if (query) {
+                if (typeof showNotification === 'function') {
+                    showNotification(`Searching for: ${query}`, 'info');
+                }
+                try {
+                    const discoverInput = document.getElementById('discoverSearchInput');
+                    if (discoverInput) {
+                        discoverInput.value = query;
+                        // Switch to Discover section if helper exists
+                        if (typeof showSection === 'function') {
+                            showSection('discover');
+                        }
+                        if (typeof advancedDiscover !== 'undefined') {
+                            advancedDiscover.performWebSearch();
+                        }
+                    }
+                } catch (e) {
+                    console.error('Voice search routing error:', e);
+                }
             }
         } else if (lower.includes('pause')) {
             const audioPlayer = document.querySelector('audio');
