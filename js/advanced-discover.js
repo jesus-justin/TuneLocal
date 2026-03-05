@@ -834,7 +834,7 @@ class AdvancedDiscover {
                             <button class="card-action-btn" onclick="advancedDiscover.playSong('${song.url.replace(/'/g, "\\'")}', '${song.title.replace(/'/g, "\\'")}')">
                                 <i class="fas fa-play"></i> Play
                             </button>
-                            <button class="card-action-btn download" onclick="advancedDiscover.downloadSong('${song.url.replace(/'/g, "\\'")}', '${song.title.replace(/'/g, "\\'")} - ${song.artist.replace(/'/g, "\\'")}')" >
+                            <button class="card-action-btn download" onclick="advancedDiscover.downloadSong('${`db_${song.artist}_${song.title}`.replace(/'/g, "\\'")}', '${song.title.replace(/'/g, "\\'")} - ${song.artist.replace(/'/g, "\\'")}', '${song.url.replace(/'/g, "\\'")}', 'youtube')" >
                                 <i class="fas fa-download"></i> Get
                             </button>
                         </div>
@@ -1327,13 +1327,62 @@ class AdvancedDiscover {
     }
 
     downloadSong(id, title, url, source) {
-        console.log(`Download initiated: ${title} from ${source}`);
-        
-        // Use the download manager if available
+        console.log(`Download initiated: ${title} from ${source || 'unknown source'}`);
+
+        // Prefer automatic offline save for YouTube-based sources when a URL is available
+        const hasYoutubeUrl = url && /youtube\.com|youtu\.be/i.test(url);
+        const isYoutubeSource = hasYoutubeUrl ||
+            (source && /youtube|ai|smart/i.test(source));
+
+        if (hasYoutubeUrl && isYoutubeSource) {
+            if (typeof showNotification === 'function') {
+                showNotification('Preparing offline copy of this track…', 'info');
+            }
+
+            fetch('../api/download_youtube.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, title })
+            })
+                .then(resp => resp.json())
+                .then(data => {
+                    if (data && data.success) {
+                        if (typeof showNotification === 'function') {
+                            showNotification('Saved to Offline Music. Opening library…', 'success');
+                        }
+                        // Refresh offline library if helper exists
+                        try {
+                            if (typeof loadOfflineMusicFromMySQL === 'function') {
+                                loadOfflineMusicFromMySQL();
+                            }
+                            if (typeof showSection === 'function') {
+                                showSection('offline-music');
+                            }
+                        } catch (e) {
+                            console.error('Error refreshing offline music after download:', e);
+                        }
+                    } else {
+                        const msg = (data && data.error) ? data.error : 'Unknown error while saving track';
+                        console.error('download_youtube.php error:', data);
+                        if (typeof showNotification === 'function') {
+                            showNotification(msg, 'error');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Network error calling download_youtube.php:', err);
+                    if (typeof showNotification === 'function') {
+                        showNotification('Network error while downloading track. Please try again.', 'error');
+                    }
+                });
+
+            return;
+        }
+
+        // Fallback to the existing download manager behaviour (no automatic offline save)
         if (typeof downloadManager !== 'undefined') {
             downloadManager.createDownloadItem(id, title, url);
-            
-            // Show success notification
+
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
@@ -1356,11 +1405,14 @@ class AdvancedDiscover {
                     </div>
                 </div>
             `;
-            
+
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 4000);
         } else {
-            console.warn('Download manager not available');
+            console.warn('Download manager not available and URL is not a YouTube URL');
+            if (typeof showNotification === 'function') {
+                showNotification('Download manager is not available for this source.', 'error');
+            }
         }
     }
 

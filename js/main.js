@@ -742,6 +742,13 @@ function loadOfflineMusicFromMySQL() {
                 updateAllTracksCache(data.tracks);
                 displayOfflineMusicFromMySQL(data.tracks);
                 updateStorageStatsMySQL();
+
+                // Sync enhanced offline player (if present) with MySQL-backed library
+                if (typeof enhancedOfflinePlayer !== 'undefined' &&
+                    enhancedOfflinePlayer &&
+                    typeof enhancedOfflinePlayer.syncFromMySQL === 'function') {
+                    enhancedOfflinePlayer.syncFromMySQL(data.tracks);
+                }
             } else {
                 showNotification('Failed to load music library', 'error');
             }

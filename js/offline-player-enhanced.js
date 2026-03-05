@@ -11,6 +11,7 @@ class EnhancedOfflinePlayer {
     }
 
     init() {
+        // Start with any legacy localStorage library; MySQL sync can override it later
         this.loadOfflineLibrary();
         this.enhanceOfflineUI();
         this.attachPlayerEvents();
@@ -19,6 +20,31 @@ class EnhancedOfflinePlayer {
     loadOfflineLibrary() {
         const library = JSON.parse(localStorage.getItem('offlineMusic') || '[]');
         this.playlist = library;
+    }
+
+    /**
+     * Synchronize enhanced offline player with the MySQL-backed music library.
+     * This is invoked from main.js after loadOfflineMusicFromMySQL() completes.
+     */
+    syncFromMySQL(tracks) {
+        if (!Array.isArray(tracks)) return;
+
+        this.playlist = tracks.map((track) => {
+            const sizeBytes = parseInt(track.file_size, 10) || 0;
+            const sizeMB = sizeBytes > 0 ? +(sizeBytes / 1024 / 1024).toFixed(1) : 0;
+            return {
+                id: track.id,
+                name: track.name || track.file_name || 'Offline Track',
+                artist: track.file_name || 'Offline Library',
+                duration: 0,
+                size: sizeMB,
+                type: track.file_type || 'audio/*',
+                date: track.date_added || '',
+                source: 'mysql'
+            };
+        });
+
+        this.displayLibrary();
     }
 
     enhanceOfflineUI() {
@@ -371,7 +397,21 @@ class EnhancedOfflinePlayer {
         this.currentIndex = index;
         this.currentTrack = this.playlist[index];
         this.isPlaying = true;
-        
+
+        // Delegate actual audio playback to the existing MySQL-backed player when available
+        try {
+            if (typeof playOfflineTrackMySQL === 'function' && this.currentTrack && this.currentTrack.id != null) {
+                let dbIndex = 0;
+                if (Array.isArray(window.currentPlaylist)) {
+                    const found = window.currentPlaylist.findIndex(t => String(t.id) === String(this.currentTrack.id));
+                    if (found >= 0) dbIndex = found;
+                }
+                playOfflineTrackMySQL(this.currentTrack.id, dbIndex);
+            }
+        } catch (e) {
+            console.error('EnhancedOfflinePlayer playback error:', e);
+        }
+
         // Update UI
         this.updateNowPlaying();
         this.displayLibrary();
