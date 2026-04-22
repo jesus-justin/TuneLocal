@@ -19,19 +19,34 @@ powershell -ExecutionPolicy Bypass -File .\scripts\create-offline-zip.ps1 -Versi
 
 Output ZIP:
 
-- `release/TuneLocal-offline-2026.04.22.zip`
+- `release/TuneLocal-offline-2026.04.22-desktop.zip`
 
 ## Deploy Locally (XAMPP)
 
 1. Extract the ZIP.
-2. Copy extracted `TuneLocal` folder to:
+2. Open the extracted folder.
+3. Double-click `TuneLocal.exe`.
+4. If `TuneLocal.exe` is unavailable, double-click `TuneLocal.bat`.
+5. Wait for Apache/MySQL to start and browser to open automatically.
+6. If Windows asks for permission, allow it.
+
+Package layout:
+
+- `Engine/` (launcher internals)
+- `TuneLocal/` (app files)
+- `TuneLocal.exe` (click-to-run launcher)
+- `TuneLocal.bat` (fallback launcher)
+
+### Manual Setup (Alternative)
+
+1. Copy extracted `TuneLocal` folder to:
    - `C:\xampp\htdocs\TuneLocal`
-3. Start Apache and MySQL in XAMPP.
-4. Import database:
+2. Start Apache and MySQL in XAMPP.
+3. Import database:
    - Open `http://localhost/phpmyadmin`
    - Create database `tunelocal`
    - Import `database/tunelocal.sql`
-5. Open app:
+4. Open app:
    - `http://localhost/TuneLocal/`
 
 ## Offline Validation Checklist
@@ -54,7 +69,7 @@ Disconnect internet and verify:
 
 Upload this file to your release:
 
-- `release/TuneLocal-offline-2026.04.22.zip`
+- `release/TuneLocal-offline-2026.04.22-desktop.zip`
 
 Recommended release notes snippet:
 
