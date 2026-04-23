@@ -27,15 +27,17 @@ Output ZIP:
 2. Open the extracted folder.
 3. Double-click `TuneLocal.exe`.
 4. If `TuneLocal.exe` is unavailable, double-click `TuneLocal.bat`.
-5. Wait for Apache/MySQL to start and browser to open automatically.
+5. Wait for Apache/MySQL to start and the TuneLocal desktop window to open.
 6. If Windows asks for permission, allow it.
 
 Package layout:
 
 - `Engine/` (launcher internals)
 - `TuneLocal/` (app files)
-- `TuneLocal.exe` (click-to-run launcher)
+- `TuneLocal.exe` (click-to-run desktop app window)
 - `TuneLocal.bat` (fallback launcher)
+
+`TuneLocal.exe` runs TuneLocal in an embedded app window (not your normal browser).
 
 ### Manual Setup (Alternative)
 

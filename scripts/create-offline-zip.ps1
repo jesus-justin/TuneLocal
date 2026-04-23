@@ -106,34 +106,146 @@ Set-Content -Path (Join-Path $packageRoot "TuneLocal.bat") -Value $rootBat -Enco
 
 $launcherCode = @"
 using System;
+using System.Drawing;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Threading;
+using System.Windows.Forms;
 
 public static class Program
 {
-    [STAThread]
-    public static void Main()
-    {
-        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-        string batPath = Path.Combine(baseDir, "Engine", "Start-TuneLocal.bat");
+    private const string AppName = "TuneLocal";
 
-        if (!File.Exists(batPath))
+    private static void CopyDirectory(string sourceDir, string targetDir)
+    {
+        Directory.CreateDirectory(targetDir);
+
+        foreach (var file in Directory.GetFiles(sourceDir))
         {
-            System.Windows.Forms.MessageBox.Show(
-                "Engine launcher not found:\n" + batPath,
-                "TuneLocal",
-                System.Windows.Forms.MessageBoxButtons.OK,
-                System.Windows.Forms.MessageBoxIcon.Error
-            );
+            var targetFile = Path.Combine(targetDir, Path.GetFileName(file));
+            File.Copy(file, targetFile, true);
+        }
+
+        foreach (var dir in Directory.GetDirectories(sourceDir))
+        {
+            var targetSubDir = Path.Combine(targetDir, Path.GetFileName(dir));
+            CopyDirectory(dir, targetSubDir);
+        }
+    }
+
+    private static void StartProcessIfExists(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
             return;
         }
 
         Process.Start(new ProcessStartInfo
         {
-            FileName = batPath,
+            FileName = filePath,
             UseShellExecute = true,
-            WorkingDirectory = Path.GetDirectoryName(batPath)
+            WindowStyle = ProcessWindowStyle.Minimized
         });
+    }
+
+    private static bool WaitForUrl(string url, int attempts, int delayMs)
+    {
+        for (int i = 0; i < attempts; i++)
+        {
+            try
+            {
+                var request = WebRequest.Create(url);
+                request.Timeout = 2000;
+                using (var response = request.GetResponse())
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                Thread.Sleep(delayMs);
+            }
+        }
+
+        return false;
+    }
+
+    [STAThread]
+    public static void Main()
+    {
+        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        string packageAppDir = Path.Combine(baseDir, "TuneLocal");
+        string xamppDir = @"C:\xampp";
+        string htdocsDir = Path.Combine(xamppDir, "htdocs");
+        string targetDir = Path.Combine(htdocsDir, AppName);
+        string apacheStart = Path.Combine(xamppDir, "apache_start.bat");
+        string mysqlStart = Path.Combine(xamppDir, "mysql_start.bat");
+        string appUrl = "http://localhost/" + AppName + "/";
+
+        if (!File.Exists(apacheStart))
+        {
+            MessageBox.Show(
+                "XAMPP not found at C:\\xampp.\nInstall XAMPP first from https://www.apachefriends.org/",
+                "TuneLocal",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            return;
+        }
+
+        if (!Directory.Exists(packageAppDir) || !File.Exists(Path.Combine(packageAppDir, "index.php")))
+        {
+            MessageBox.Show(
+                "Packaged app files were not found. Expected folder: " + packageAppDir,
+                "TuneLocal",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            return;
+        }
+
+        try
+        {
+            CopyDirectory(packageAppDir, targetDir);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                "Could not copy app files to htdocs:\n" + ex.Message,
+                "TuneLocal",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            return;
+        }
+
+        StartProcessIfExists(apacheStart);
+        StartProcessIfExists(mysqlStart);
+
+        WaitForUrl(appUrl, 15, 1000);
+
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+
+        Form form = new Form
+        {
+            Text = "TuneLocal Desktop",
+            Width = 1280,
+            Height = 820,
+            StartPosition = FormStartPosition.CenterScreen,
+            MinimumSize = new Size(980, 640)
+        };
+
+        WebBrowser browser = new WebBrowser
+        {
+            Dock = DockStyle.Fill,
+            ScriptErrorsSuppressed = true,
+            Url = new Uri(appUrl)
+        };
+
+        form.Controls.Add(browser);
+        Application.Run(form);
     }
 }
 "@
@@ -142,7 +254,7 @@ $exePath = Join-Path $packageRoot "TuneLocal.exe"
 $compiled = $false
 
 try {
-    Add-Type -TypeDefinition $launcherCode -Language CSharp -ReferencedAssemblies "System.Windows.Forms.dll" -OutputType WindowsApplication -OutputAssembly $exePath
+    Add-Type -TypeDefinition $launcherCode -Language CSharp -ReferencedAssemblies "System.Windows.Forms.dll", "System.Drawing.dll" -OutputType WindowsApplication -OutputAssembly $exePath
     $compiled = Test-Path $exePath
 } catch {
     $compiled = $false
