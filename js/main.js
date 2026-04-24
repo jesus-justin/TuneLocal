@@ -216,6 +216,11 @@ function showSection(sectionId) {
 function applyTheme(theme) {
     const isLight = theme === 'light';
     document.body.classList.toggle('light-theme', isLight);
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (!themeToggle) {
+        try { preferencesManager?.set('theme', isLight ? 'light' : 'dark'); } catch {}
+        return;
+    }
     const icon = themeToggle.querySelector('i');
     if (isLight) {
         icon.classList.remove('fa-moon');
